@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css2?family=Comic+Neue:wght@1,700&display=swap");
+
+body {
+  text-align: center;
+  margin-top: 15%;
+  height: 100%;
+  font-size: 12em;
+  background-color: darkseagreen;
+  font-family: cursive;
+  background-size: 30%;
+}
+
+#girl {
+  background-color: #ff627e;
+}
+
+#counter {
+  font-size: 100px;
+  padding-top: 0.5em;
+  margin-top: 25%;
+}
+
+#start,
+#stop {
+  border: none;
+  background: transparent;
+}
+
+#start svg,
+#stop svg {
+  height: 10em;
+  width: 10em;
+  margin-top: 14em;
+}
+
+#start:hover,
+#stop:hover {
+  cursor: pointer;
+}
