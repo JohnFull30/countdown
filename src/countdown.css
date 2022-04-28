@@ -33,7 +33,6 @@ body {
   margin-top: 14em;
 }
 
-#start:hover,
-#stop:hover {
+#start:hover {
   cursor: pointer;
 }
