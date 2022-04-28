@@ -46,7 +46,7 @@ export const GenderCountdown = () => {
     <>
       <button
         onClick={() => {
-          startTimer(10, "boy");
+          startTimer(10, "girl");
         }}
         id="start"
       >
