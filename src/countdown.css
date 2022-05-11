@@ -21,8 +21,7 @@ body {
   margin-top: 25%;
 }
 
-#start,
-#stop {
+#start {
   border: none;
   background: transparent;
 }
