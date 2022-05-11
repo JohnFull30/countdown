@@ -6,7 +6,8 @@ body {
   height: 100%;
   font-size: 12em;
   background-color: darkseagreen;
-  font-family: cursive;
+  font-family: "Comic Neue";
+  font-style: italic;
   background-size: 30%;
 }
 
