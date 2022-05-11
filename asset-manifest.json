@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/countdown/static/css/main.d66e0a5f.css",
-    "main.js": "/countdown/static/js/main.378a1ba4.js",
-    "static/js/787.482db2ac.chunk.js": "/countdown/static/js/787.482db2ac.chunk.js",
-    "index.html": "/countdown/index.html",
-    "main.d66e0a5f.css.map": "/countdown/static/css/main.d66e0a5f.css.map",
-    "main.378a1ba4.js.map": "/countdown/static/js/main.378a1ba4.js.map",
-    "787.482db2ac.chunk.js.map": "/countdown/static/js/787.482db2ac.chunk.js.map"
+    "main.css": "/JohnFull30/Gender-Reveal-Countdown/static/css/main.bc02bf7a.css",
+    "main.js": "/JohnFull30/Gender-Reveal-Countdown/static/js/main.cb69b194.js",
+    "static/js/787.222a4a2e.chunk.js": "/JohnFull30/Gender-Reveal-Countdown/static/js/787.222a4a2e.chunk.js",
+    "index.html": "/JohnFull30/Gender-Reveal-Countdown/index.html",
+    "main.bc02bf7a.css.map": "/JohnFull30/Gender-Reveal-Countdown/static/css/main.bc02bf7a.css.map",
+    "main.cb69b194.js.map": "/JohnFull30/Gender-Reveal-Countdown/static/js/main.cb69b194.js.map",
+    "787.222a4a2e.chunk.js.map": "/JohnFull30/Gender-Reveal-Countdown/static/js/787.222a4a2e.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.d66e0a5f.css",
-    "static/js/main.378a1ba4.js"
+    "static/css/main.bc02bf7a.css",
+    "static/js/main.cb69b194.js"
   ]
 }
