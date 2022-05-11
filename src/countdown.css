@@ -1,8 +1,7 @@
 body {
   text-align: center;
-  margin-top: 15%;
-  height: 100%;
-  font-size: 12em;
+  margin-top: 11%;
+  height: fit-content;
   background-color: darkseagreen;
   font-family: Helvetica, sans-serif;
   font-weight: bold;
@@ -26,11 +25,37 @@ body {
 
 #start svg,
 #stop svg {
-  height: 25em;
+  height: 10em;
   width: 10em;
   margin-top: 14em;
 }
 
 #start:hover {
   cursor: pointer;
+}
+
+@media (max-width: 808px) {
+  #start svg,
+  #stop svg {
+    height: 25em;
+    width: 10em;
+    margin-top: -3em;
+  }
+
+  #counter {
+    font-size: 131px;
+    margin-top: 40%;
+  }
+
+  body {
+    text-align: center;
+    margin-top: 73%;
+    height: 100%;
+    font-size: 8em;
+    background-color: darkseagreen;
+    font-family: Helvetica, sans-serif;
+    font-weight: bold;
+    background-size: 50%;
+    background-position-x: 100%;
+  }
 }
