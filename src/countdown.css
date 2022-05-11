@@ -1,11 +1,13 @@
 body {
   text-align: center;
-  margin-top: 11%;
+  margin-top: 15%;
   height: fit-content;
   background-color: darkseagreen;
   font-family: Helvetica, sans-serif;
   font-weight: bold;
   background-size: 30%;
+  font-size: 12em;
+  overflow-y: hidden;
 }
 
 #girl {
