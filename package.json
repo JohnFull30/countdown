@@ -3,20 +3,44 @@
     "heroku-postbuild": "npm run build",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d build",
-    "start": "node app.js"
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
   "name": "genderreveal",
   "version": "1.0.0",
   "main": "countdown.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JohnFull30/Gender-Reveal-Countdown.git"
+    "url": "git+https://github.com/JohnFull30/countdown.git"
   },
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/JohnFull30/Gender-Reveal-Countdown/issues"
+    "url": "https://github.com/JohnFull30/countdown/issues"
   },
-  "homepage": "https://github.com/JohnFull30/Gender-Reveal-Countdown#readme",
-  "description": ""
+  "homepage": "https://johnfull30.github.io/countdown/",
+  "description": "",
+  "dependencies": {
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "react-scripts": "^5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "gh-pages": "^4.0.0"
+  }
 }
