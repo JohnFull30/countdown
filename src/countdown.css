@@ -39,7 +39,7 @@ body {
   #stop svg {
     height: 25em;
     width: 10em;
-    margin-top: -2em;
+    margin-top: 0em;
   }
 
   #counter {
@@ -49,13 +49,13 @@ body {
 
   body {
     text-align: center;
-    margin-top: 73%;
+    margin-top: 59%;
     height: 100%;
     font-size: 8em;
     background-color: darkseagreen;
     font-family: Helvetica, sans-serif;
     font-weight: bold;
-    background-size: 50%;
+    background-size: 100%;
     background-position-x: 100%;
   }
 }
