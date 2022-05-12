@@ -15,9 +15,8 @@ body {
 }
 
 #counter {
-  font-size: 100px;
-  padding-top: 0.5em;
-  margin-top: 25%;
+  font-size: 150px;
+  margin-top: 0em;
 }
 
 #start {
@@ -29,7 +28,7 @@ body {
 #stop svg {
   height: 10em;
   width: 10em;
-  margin-top: 14em;
+  margin-top: 0em;
 }
 
 #start:hover {
