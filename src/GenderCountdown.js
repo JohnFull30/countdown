@@ -1,5 +1,6 @@
 import React from "react";
 import "./countdown.css";
+import { useState } from "react";
 
 export const GenderCountdown = () => {
   // const [revealMessage, setRevealMessage] = useState("");
@@ -46,7 +47,7 @@ export const GenderCountdown = () => {
     <>
       <button
         onClick={() => {
-          startTimer(10, "boy");
+          startTimer(10, "girl");
         }}
         id="start"
       >
