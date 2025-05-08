@@ -1,69 +1,80 @@
-import React from "react";
-import "./countdown.css";
+// src/GenderCountdown.js
+import React, { useEffect, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import './countdown.css';
 
-export const GenderCountdown = () => {
-  // const [revealMessage, setRevealMessage] = useState("");
+export default function GenderCountdown() {
+  const countdownRef = useRef(null);
+  const navigate = useNavigate();
+  const { state } = useLocation();
+  const { duration = 10, gender = 'boy' } = state || {};
 
-  let countdown;
+  useEffect(() => {
+    const body = document.body;
+    // 1) Reset to solid green and clear any previous GIF
+    body.style.backgroundColor  = 'darkseagreen';
+    body.style.backgroundImage  = '';
+    body.style.backgroundRepeat = '';
+    body.style.backgroundPosition = '';
+    body.style.backgroundSize    = '';
+    body.style.color            = '';
+    body.style.textShadow       = '';
 
-  const startTimer = (duration, gender) => {
-    let timer;
-    timer = duration;
-    let seconds;
+    let timer = duration;
+    const displayEl = document.getElementById('counter');
+    const genderEl  = document.getElementById('gender');
 
-    countdown = setInterval(function () {
-      seconds = parseInt(timer % 60, 10);
+    // ensure your counter & text are visible at start
+    displayEl.style.display = '';
+    genderEl.textContent   = '';
 
-      const display = document.querySelector("#counter");
-      document.querySelector("#start").style.display = "none";
-      display.textContent = seconds;
+    countdownRef.current = setInterval(() => {
+      displayEl.textContent = timer;
+      if (timer-- <= 0) {
+        clearInterval(countdownRef.current);
+        displayEl.style.display = 'none';
 
-      if (--timer < 0) {
-        timer = duration;
-        clearInterval(countdown);
-        display.style.display = "none";
+        // 2) Pick the correct GIF URL
+        const gifUrl = gender === 'girl'
+          ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=82a1493bjmbf74sqgxnb4emr4hse65xczf57gkrrmgqtzfm7&rid=200w.gif&ct=g'
+          : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=82a1493bnm84hi1bbod5eoxmgpk5jc1dcfrs8e0ueraxj26f&rid=200w.gif&ct=g';
 
-        const docBody = document.querySelector("body");
-        if (gender === "girl") {
-          docBody.style.backgroundImage =
-            "url('https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=82a1493bjmbf74sqgxnb4emr4hse65xczf57gkrrmgqtzfm7&rid=200w.gif&ct=g')";
-          docBody.style.color = "#ff627e";
-          docBody.style.textShadow = "8px 1px black";
-        } else {
-          docBody.style.backgroundImage =
-            "url('https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=82a1493bnm84hi1bbod5eoxmgpk5jc1dcfrs8e0ueraxj26f&rid=200w.gif&ct=g')";
-          docBody.style.color = "cornflowerblue";
-          docBody.style.textShadow = "8px 1px black";
-        }
+        // 3) Tile it—repeat across the screen, default size (200×200)
+        body.style.backgroundImage   = `url('${gifUrl}')`;
+        body.style.backgroundRepeat  = 'repeat';
+        body.style.backgroundPosition = 'center';
+        body.style.backgroundSize     = 'auto';
 
-        const genderText = gender === "girl" ? "IT'S A GIRL!" : "IT'S A BOY!";
-        document.querySelector("#gender").textContent = genderText;
+        // 4) Reveal the final text
+        body.style.color       = gender === 'girl' ? '#ff627e'     : 'cornflowerblue';
+        body.style.textShadow  = '8px 1px black';
+        genderEl.textContent   = gender === 'girl' ? "IT'S A GIRL!" : "IT'S A BOY!";
       }
     }, 1000);
-  };
+
+    return () => {
+      clearInterval(countdownRef.current);
+      // Clean up all body styles on unmount/refresh
+      body.style.backgroundColor  = '';
+      body.style.backgroundImage  = '';
+      body.style.backgroundRepeat = '';
+      body.style.backgroundPosition = '';
+      body.style.backgroundSize    = '';
+      body.style.color            = '';
+      body.style.textShadow       = '';
+    };
+  }, [duration, gender]);
 
   return (
-    <>
+    <div className="countdown-container">
       <button
-        onClick={() => {
-          startTimer(10, "boy");
-        }}
-        id="start"
+        className="back-btn"
+        onClick={() => navigate('/', { replace: true })}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          height="24"
-          viewBox="0 0 24 24"
-          width="24"
-        >
-          <path d="M0 0h24v24H0z" fill="none" />
-          <path d="M10 16.5l6-4.5-6-4.5v9zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-        </svg>
+        Change Timer &amp; Gender
       </button>
-      <div id="counter"></div>
-      <div id="gender"></div>
-    </>
+      <div id="counter" style={{ fontSize: '4rem' }} />
+      <div id="gender"  style={{ fontSize: '6rem' }} />
+    </div>
   );
-};
-
-export default GenderCountdown;
+}

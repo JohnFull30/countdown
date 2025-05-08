@@ -1,0 +1,19 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "Choose Script",
+        "type": "shell",
+        "command": "choose-script.sh",
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "problemMatcher": [],
+        "presentation": {
+          "reveal": "always"
+        }
+      }
+    ]
+  }
+  
