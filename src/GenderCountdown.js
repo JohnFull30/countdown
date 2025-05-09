@@ -1,15 +1,18 @@
 // src/GenderCountdown.js
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './countdown.css';
 
 export default function GenderCountdown() {
+  const [started, setStarted] = useState(false);
   const countdownRef = useRef(null);
   const navigate = useNavigate();
   const { state } = useLocation();
   const { duration = 10, gender = 'boy' } = state || {};
 
   useEffect(() => {
+    if (!started) return;
+
     const body = document.body;
     // 1) Reset to solid green and clear any previous GIF
     body.style.backgroundColor  = 'darkseagreen';
@@ -36,8 +39,8 @@ export default function GenderCountdown() {
 
         // 2) Pick the correct GIF URL
         const gifUrl = gender === 'girl'
-          ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=82a1493bjmbf74sqgxnb4emr4hse65xczf57gkrrmgqtzfm7&rid=200w.gif&ct=g'
-          : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=82a1493bnm84hi1bbod5eoxmgpk5jc1dcfrs8e0ueraxj26f&rid=200w.gif&ct=g';
+          ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=…&rid=200w.gif&ct=g'
+          : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=…&rid=200w.gif&ct=g';
 
         // 3) Tile it—repeat across the screen, default size (200×200)
         body.style.backgroundImage   = `url('${gifUrl}')`;
@@ -54,7 +57,7 @@ export default function GenderCountdown() {
 
     return () => {
       clearInterval(countdownRef.current);
-      // Clean up all body styles on unmount/refresh
+      // Clean up body styles on unmount/refresh
       body.style.backgroundColor  = '';
       body.style.backgroundImage  = '';
       body.style.backgroundRepeat = '';
@@ -63,7 +66,7 @@ export default function GenderCountdown() {
       body.style.color            = '';
       body.style.textShadow       = '';
     };
-  }, [duration, gender]);
+  }, [started, duration, gender]);
 
   return (
     <div className="countdown-container">
@@ -73,8 +76,17 @@ export default function GenderCountdown() {
       >
         Change Timer &amp; Gender
       </button>
-      <div id="counter" style={{ fontSize: '4rem' }} />
-      <div id="gender"  style={{ fontSize: '6rem' }} />
+
+      {!started ? (
+        <button className="start-btn" onClick={() => setStarted(true)}>
+          Start Countdown
+        </button>
+      ) : (
+        <>
+          <div id="counter" style={{ fontSize: '4rem' }} />
+          <div id="gender"  style={{ fontSize: '6rem' }} />
+        </>
+      )}
     </div>
   );
 }
