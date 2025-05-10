@@ -18,10 +18,21 @@ const GENDER_STYLES = {
   }
 };
 
+// simple JS URL validator
+const isValidUrl = (url) => {
+  try {
+    new URL(url);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export const CountdownSetup = () => {
   const [duration, setDuration]   = useState(10);
   const [gender,   setGender]     = useState('boy');
-  const [customGif,setCustomGif]  = useState('');
+  const [customGif, setCustomGif] = useState('');
+  const [urlError,  setUrlError]  = useState(false);
   const navigate = useNavigate();
 
   const handleDuration = e => {
@@ -29,7 +40,19 @@ export const CountdownSetup = () => {
     setDuration(val);
   };
 
+  const handleGifChange = e => {
+    const val = e.target.value;
+    setCustomGif(val);
+    // only validate non-empty values
+    if (val === '' || isValidUrl(val)) {
+      setUrlError(false);
+    } else {
+      setUrlError(true);
+    }
+  };
+
   const handleSubmit = () => {
+    if (urlError) return;
     navigate('/countdown', {
       state: { duration, gender, customGifUrl: customGif }
     });
@@ -83,7 +106,7 @@ export const CountdownSetup = () => {
         🎉 Set Your Countdown
       </Typography>
 
-      {/* Super-compact transparent “ghost” card */}
+      {/* Duration picker */}
       <Box
         sx={{
           border: '1px solid',
@@ -112,25 +135,32 @@ export const CountdownSetup = () => {
         />
       </Box>
 
+      {/* Gender selector */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         {['boy', 'girl'].map(renderGenderButton)}
       </Box>
 
+      {/* URL input with validation */}
       <TextField
         label="Custom GIF URL (optional)"
         value={customGif}
-        onChange={e => setCustomGif(e.target.value)}
+        onChange={handleGifChange}
+        type="url"
         variant="outlined"
         fullWidth
+        error={urlError}
+        helperText={urlError ? 'Please enter a valid URL' : ''}
         sx={{ maxWidth: 320, mb: 3 }}
       />
 
+      {/* Submit */}
       <Button
         variant="contained"
         size="large"
         fullWidth
         sx={{ maxWidth: 320 }}
         onClick={handleSubmit}
+        disabled={urlError}
       >
         Start Countdown
       </Button>
