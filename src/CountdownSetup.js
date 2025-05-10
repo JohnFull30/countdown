@@ -1,107 +1,140 @@
 // src/CountdownSetup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  Container,
-  Box,
-  Typography,
-  TextField,
-  Button,
-} from '@mui/material';
+import { Box, Typography, TextField, Button } from '@mui/material';
+
+const GENDER_STYLES = {
+  boy: {
+    main: 'primary.main',
+    dark: 'primary.dark',
+    text: '#fff',
+    hoverBg: 'rgba(25,118,210,0.1)'
+  },
+  girl: {
+    main: '#ff627e',
+    dark: '#e55672',
+    text: '#fff',
+    hoverBg: 'rgba(255,98,126,0.1)'
+  }
+};
 
 export const CountdownSetup = () => {
-  const [duration, setDuration] = useState(10);
-  const [gender, setGender] = useState('boy');
+  const [duration, setDuration]   = useState(10);
+  const [gender,   setGender]     = useState('boy');
+  const [customGif,setCustomGif]  = useState('');
   const navigate = useNavigate();
 
+  const handleDuration = e => {
+    const val = Math.min(30, Math.max(1, Number(e.target.value)));
+    setDuration(val);
+  };
+
   const handleSubmit = () => {
-    navigate('/countdown', { state: { duration, gender } });
+    navigate('/countdown', {
+      state: { duration, gender, customGifUrl: customGif }
+    });
+  };
+
+  const renderGenderButton = key => {
+    const isSelected = gender === key;
+    const { main, dark, text, hoverBg } = GENDER_STYLES[key];
+
+    return (
+      <Button
+        key={key}
+        variant={isSelected ? 'contained' : 'outlined'}
+        onClick={() => setGender(key)}
+        size="medium"
+        sx={{
+          width: 100,
+          ...(isSelected
+            ? {
+                bgcolor: main,
+                color: text,
+                '&:hover': { bgcolor: dark }
+              }
+            : {
+                borderColor: main,
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                color: main,
+                '&:hover': { bgcolor: hoverBg }
+              })
+        }}
+      >
+        {key.toUpperCase()}
+      </Button>
+    );
   };
 
   return (
-    <Container maxWidth="xs">
+    <Box
+      sx={{
+        minHeight: '100vh',
+        bgcolor: 'darkseagreen',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        p: 2
+      }}
+    >
+      <Typography variant="h4" gutterBottom>
+        🎉 Set Your Countdown
+      </Typography>
+
+      {/* Super-compact transparent “ghost” card */}
       <Box
         sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'center',
-          alignItems: 'center',
-          py: 4,
+          border: '1px solid',
+          borderColor: 'grey.500',
+          borderRadius: 2,
+          p: 1,
+          mb: 2,
+          width: 90,
+          textAlign: 'center',
+          bgcolor: 'transparent'
         }}
       >
-        <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
-          🎉 Set Your Countdown
+        <Typography variant="caption" display="block" gutterBottom>
+          Duration (sec)
         </Typography>
-
-        {/* Compact, center-aligned duration input */}
         <TextField
-          label="Duration (sec)"
-          type="number"
           value={duration}
-          onChange={e =>
-            setDuration(
-              Math.min(30, Math.max(1, parseInt(e.target.value, 10) || 1))
-            )
-          }
-          sx={{ width: 110, mb: 4 }}
-          inputProps={{
-            min: 1,
-            max: 30,
-            style: { textAlign: 'center' },
+          onChange={handleDuration}
+          type="number"
+          inputProps={{ min: 1, max: 30 }}
+          variant="standard"
+          InputProps={{
+            disableUnderline: true,
+            sx: { textAlign: 'center', fontSize: '1.25rem', py: 0 }
           }}
         />
-
-        {/* Plain Button gender picker */}
-        <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
-          <Button
-            onClick={() => setGender('boy')}
-            sx={{
-              width: 100,
-              ...(gender === 'boy'
-                ? {
-                    bgcolor: 'primary.main',
-                    color: 'common.white',
-                    '&:hover': { bgcolor: 'primary.dark' },
-                  }
-                : {
-                    border: '2px solid',
-                    borderColor: 'primary.main',
-                    color: 'primary.main',
-                    '&:hover': { bgcolor: 'primary.light' },
-                  }),
-            }}
-          >
-            Boy
-          </Button>
-
-          <Button
-            onClick={() => setGender('girl')}
-            sx={{
-              width: 100,
-              ...(gender === 'girl'
-                ? {
-                    bgcolor: '#ff80ab',
-                    color: 'common.white',
-                    '&:hover': { bgcolor: '#ff4081' },
-                  }
-                : {
-                    border: '2px solid',
-                    borderColor: '#ff4081',
-                    color: '#ff4081',
-                    '&:hover': { bgcolor: '#ffe1f0' },
-                  }),
-            }}
-          >
-            Girl
-          </Button>
-        </Box>
-
-        <Button variant="contained" size="large" fullWidth onClick={handleSubmit}>
-          Start Countdown
-        </Button>
       </Box>
-    </Container>
+
+      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+        {['boy', 'girl'].map(renderGenderButton)}
+      </Box>
+
+      <TextField
+        label="Custom GIF URL (optional)"
+        value={customGif}
+        onChange={e => setCustomGif(e.target.value)}
+        variant="outlined"
+        fullWidth
+        sx={{ maxWidth: 320, mb: 3 }}
+      />
+
+      <Button
+        variant="contained"
+        size="large"
+        fullWidth
+        sx={{ maxWidth: 320 }}
+        onClick={handleSubmit}
+      >
+        Start Countdown
+      </Button>
+    </Box>
   );
 };
 
