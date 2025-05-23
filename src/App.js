@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import CountdownSetup from './CountdownSetup';
+import CountdownSetup from './countdownsetup';
 import GenderCountdown from './GenderCountdown';
 import ProtectedRoute from './ProtectedRoute';
 
