@@ -1,20 +1,17 @@
 // src/GenderCountdown.js
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './countdown.css';
 
 export default function GenderCountdown() {
-  const [started, setStarted] = useState(false);
   const countdownRef = useRef(null);
   const navigate = useNavigate();
   const { state } = useLocation();
-  const { duration = 10, gender = 'boy' } = state || {};
+  const { duration = 10, gender = 'boy', customGifUrl = '' } = state || {};
 
   useEffect(() => {
-    if (!started) return;
-
     const body = document.body;
-    // 1) Reset to solid green and clear any previous GIF
+    // 1) Reset styling
     body.style.backgroundColor  = 'darkseagreen';
     body.style.backgroundImage  = '';
     body.style.backgroundRepeat = '';
@@ -27,28 +24,27 @@ export default function GenderCountdown() {
     const displayEl = document.getElementById('counter');
     const genderEl  = document.getElementById('gender');
 
-    // ensure your counter & text are visible at start
-    displayEl.style.display = '';
-    genderEl.textContent   = '';
-
     countdownRef.current = setInterval(() => {
-      displayEl.textContent = timer;
-      if (timer-- <= 0) {
+      if (timer >= 0) {
+        displayEl.textContent = timer;
+        timer -= 1;
+      } else {
         clearInterval(countdownRef.current);
         displayEl.style.display = 'none';
 
-        // 2) Pick the correct GIF URL
-        const gifUrl = gender === 'girl'
-          ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=…&rid=200w.gif&ct=g'
-          : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=…&rid=200w.gif&ct=g';
+        // 2) Choose custom URL or default
+        const defaultGifUrl = gender === 'girl'
+          ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?rid=200w.gif&ct=g'
+          : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?rid=200w.gif&ct=g';
+        const gifUrl = customGifUrl || defaultGifUrl;
 
-        // 3) Tile it—repeat across the screen, default size (200×200)
+        // 3) Tile it
         body.style.backgroundImage   = `url('${gifUrl}')`;
         body.style.backgroundRepeat  = 'repeat';
         body.style.backgroundPosition = 'center';
         body.style.backgroundSize     = 'auto';
 
-        // 4) Reveal the final text
+        // 4) Show the reveal text
         body.style.color       = gender === 'girl' ? '#ff627e'     : 'cornflowerblue';
         body.style.textShadow  = '8px 1px black';
         genderEl.textContent   = gender === 'girl' ? "IT'S A GIRL!" : "IT'S A BOY!";
@@ -57,16 +53,16 @@ export default function GenderCountdown() {
 
     return () => {
       clearInterval(countdownRef.current);
-      // Clean up body styles on unmount/refresh
-      body.style.backgroundColor  = '';
-      body.style.backgroundImage  = '';
-      body.style.backgroundRepeat = '';
+      // cleanup
+      body.style.backgroundColor    = '';
+      body.style.backgroundImage    = '';
+      body.style.backgroundRepeat   = '';
       body.style.backgroundPosition = '';
-      body.style.backgroundSize    = '';
-      body.style.color            = '';
-      body.style.textShadow       = '';
+      body.style.backgroundSize     = '';
+      body.style.color              = '';
+      body.style.textShadow         = '';
     };
-  }, [started, duration, gender]);
+  }, [duration, gender, customGifUrl]);
 
   return (
     <div className="countdown-container">
@@ -76,17 +72,8 @@ export default function GenderCountdown() {
       >
         Change Timer &amp; Gender
       </button>
-
-      {!started ? (
-        <button className="start-btn" onClick={() => setStarted(true)}>
-          Start Countdown
-        </button>
-      ) : (
-        <>
-          <div id="counter" style={{ fontSize: '4rem' }} />
-          <div id="gender"  style={{ fontSize: '6rem' }} />
-        </>
-      )}
+      <div id="counter" style={{ fontSize: '4rem' }} />
+      <div id="gender"  style={{ fontSize: '6rem' }} />
     </div>
   );
 }
