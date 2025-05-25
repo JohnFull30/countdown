@@ -1,15 +1,7 @@
 {
-  "scripts": {
-    "heroku-postbuild": "npm run build",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
-  },
   "name": "genderreveal",
   "version": "1.0.0",
+  "description": "",
   "main": "countdown.js",
   "repository": {
     "type": "git",
@@ -20,9 +12,21 @@
   "bugs": {
     "url": "https://github.com/JohnFull30/countdown/issues"
   },
-  "homepage": "https://johnfull30.github.io/countdown/",
-  "description": "",
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:ios": "env-cmd -f .env.ios react-scripts build",
+    "build:web": "env-cmd -f .env.web react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build:web",
+    "deploy": "gh-pages -d build",
+    "heroku-postbuild": "npm run build"
+  },
   "dependencies": {
+    "@capacitor/cli": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/ios": "^7.2.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^7.1.0",
@@ -31,6 +35,11 @@
     "react-router-dom": "^7.5.3",
     "react-scripts": "^5.0.1",
     "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.21",
+    "env-cmd": "^10.1.0",
+    "gh-pages": "^4.0.0"
   },
   "browserslist": {
     "production": [
@@ -43,8 +52,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "gh-pages": "^4.0.0"
   }
 }
