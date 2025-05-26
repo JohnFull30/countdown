@@ -4,76 +4,91 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import './countdown.css';
 
 export default function GenderCountdown() {
-  const [started, setStarted] = useState(false);
+  const [countdownStarted, setCountdownStarted] = useState(false);
   const countdownRef = useRef(null);
   const navigate = useNavigate();
   const { state } = useLocation();
-  // Pull duration, gender, and optional customGifUrl from navigation state
-  const { duration = 10, gender = 'boy', customGifUrl } = state || {};
-
-  // Determine final GIF URL: customGifUrl overrides default based on gender
-  const defaultGif = gender === 'girl'
-    ? 'https://media4.giphy.com/media/K9MPm9A3CaSkw/200w.gif?cid=…&rid=200w.gif&ct=g'
-    : 'https://media4.giphy.com/media/liFaAWEOa1uKc/200w.gif?cid=…&rid=200w.gif&ct=g';
-  const finalGifUrl = customGifUrl || defaultGif;
+  const { duration = 10, gender = 'boy' } = state || {};
 
   useEffect(() => {
-    if (!started) return;
+    if (!countdownStarted) return;
 
     const body = document.body;
-    // Reset any previous body styling
-    ['backgroundColor','backgroundImage','backgroundRepeat','backgroundPosition','backgroundSize','color','textShadow']
-      .forEach(prop => body.style[prop] = '');
+    const displayEl = document.getElementById('counter');
+    const genderEl = document.getElementById('gender');
+
+    body.style.backgroundColor = 'darkseagreen';
+    body.style.color = '';
+    body.style.textShadow = '';
+
+    const videoSrc = gender === 'girl' ? '/reveal-girl.mp4' : '/reveal-boy.mp4';
+
+    const video = document.createElement('video');
+    video.src = videoSrc;
+    video.autoplay = true;
+    video.loop = true;
+    video.muted = true;
+    video.playsInline = true;
+
+    Object.assign(video.style, {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      zIndex: -1,
+      objectFit: 'cover',
+      display: 'none',
+    });
+
+    document.body.appendChild(video);
 
     let timer = duration;
-    const counterEl = document.getElementById('counter');
-    const genderEl  = document.getElementById('gender');
-
-    // Show counter and clear text
-    counterEl.style.display = 'block';
-    genderEl.textContent   = '';
-
     countdownRef.current = setInterval(() => {
-      counterEl.textContent = timer;
-      if (timer-- <= 0) {
+      if (timer >= 0) {
+        displayEl.textContent = timer;
+        timer -= 1;
+      } else {
         clearInterval(countdownRef.current);
-        counterEl.style.display = 'none';
+        displayEl.style.display = 'none';
+        video.style.display = 'block';
 
-        // Apply GIF background
-        body.style.backgroundImage    = `url('${finalGifUrl}')`;
-        body.style.backgroundRepeat   = 'repeat';
-        body.style.backgroundPosition = 'center';
-        body.style.backgroundSize     = 'auto';
-
-        // Reveal final text
-        body.style.color      = gender === 'girl' ? '#ff627e' : 'cornflowerblue';
+        body.style.color = gender === 'girl' ? '#ff627e' : 'cornflowerblue';
         body.style.textShadow = '8px 1px black';
-        genderEl.textContent  = gender === 'girl' ? "IT'S A GIRL!" : "IT'S A BOY!";
+        genderEl.textContent = gender === 'girl' ? "IT'S A GIRL!" : "IT'S A BOY!";
       }
     }, 1000);
 
     return () => {
       clearInterval(countdownRef.current);
-      // Cleanup body styles on unmount
-      ['backgroundColor','backgroundImage','backgroundRepeat','backgroundPosition','backgroundSize','color','textShadow']
-        .forEach(prop => body.style[prop] = '');
+      video.remove();
+      body.style.backgroundColor = '';
+      body.style.color = '';
+      body.style.textShadow = '';
     };
-  }, [started, duration, gender, finalGifUrl]);
+  }, [countdownStarted, duration, gender]);
 
   return (
     <div className="countdown-container">
-      <button className="back-btn" onClick={() => navigate('/', { replace: true })}>
+      <button
+        className="back-btn"
+        onClick={() => navigate('/', { replace: true })}
+      >
         Change Timer &amp; Gender
       </button>
 
-      {!started ? (
-        <button className="start-btn" onClick={() => setStarted(true)}>
+      {!countdownStarted ? (
+        <button
+          className="start-btn"
+          style={{ marginTop: '2rem', fontSize: '1.5rem' }}
+          onClick={() => setCountdownStarted(true)}
+        >
           Start Countdown
         </button>
       ) : (
         <>
           <div id="counter" style={{ fontSize: '4rem' }} />
-          <div id="gender"  style={{ fontSize: '6rem' }} />
+          <div id="gender" style={{ fontSize: '6rem' }} />
         </>
       )}
     </div>
