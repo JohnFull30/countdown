@@ -1,7 +1,13 @@
 // src/CountdownSetup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button } from '@mui/material';
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  Slider
+} from '@mui/material';
 
 const GENDER_STYLES = {
   boy: {
@@ -18,41 +24,13 @@ const GENDER_STYLES = {
   }
 };
 
-// simple JS URL validator
-const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 export const CountdownSetup = () => {
   const [duration, setDuration]   = useState(10);
-  const [gender,   setGender]     = useState('boy');
+  const [gender, setGender]       = useState('boy');
   const [customGif, setCustomGif] = useState('');
-  const [urlError,  setUrlError]  = useState(false);
   const navigate = useNavigate();
 
-  const handleDuration = e => {
-    const val = Math.min(30, Math.max(1, Number(e.target.value)));
-    setDuration(val);
-  };
-
-  const handleGifChange = e => {
-    const val = e.target.value;
-    setCustomGif(val);
-    // only validate non-empty values
-    if (val === '' || isValidUrl(val)) {
-      setUrlError(false);
-    } else {
-      setUrlError(true);
-    }
-  };
-
   const handleSubmit = () => {
-    if (urlError) return;
     navigate('/countdown', {
       state: { duration, gender, customGifUrl: customGif }
     });
@@ -106,61 +84,52 @@ export const CountdownSetup = () => {
         🎉 Set Your Countdown
       </Typography>
 
-      {/* Duration picker */}
       <Box
         sx={{
           border: '1px solid',
           borderColor: 'grey.500',
           borderRadius: 2,
-          p: 1,
+          p: 2,
           mb: 2,
-          width: 90,
+          width: 260,
           textAlign: 'center',
           bgcolor: 'transparent'
         }}
       >
         <Typography variant="caption" display="block" gutterBottom>
-          Duration (sec)
+          Duration: <strong>{duration}</strong> sec
         </Typography>
-        <TextField
+        <Slider
           value={duration}
-          onChange={handleDuration}
-          type="number"
-          inputProps={{ min: 1, max: 30 }}
-          variant="standard"
-          InputProps={{
-            disableUnderline: true,
-            sx: { textAlign: 'center', fontSize: '1.25rem', py: 0 }
-          }}
+          onChange={(e, val) => setDuration(val)}
+          aria-label="Countdown Duration"
+          valueLabelDisplay="off"
+          step={1}
+          marks
+          min={1}
+          max={30}
         />
       </Box>
 
-      {/* Gender selector */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         {['boy', 'girl'].map(renderGenderButton)}
       </Box>
 
-      {/* URL input with validation */}
       <TextField
         label="Custom GIF URL (optional)"
         value={customGif}
-        onChange={handleGifChange}
-        type="url"
+        onChange={e => setCustomGif(e.target.value)}
         variant="outlined"
         fullWidth
-        error={urlError}
-        helperText={urlError ? 'Please enter a valid URL' : ''}
         sx={{ maxWidth: 320, mb: 3 }}
       />
 
-      {/* Submit */}
       <Button
         variant="contained"
         size="large"
         fullWidth
         sx={{ maxWidth: 320 }}
         onClick={handleSubmit}
-        disabled={urlError}
       >
         Start Countdown
       </Button>
