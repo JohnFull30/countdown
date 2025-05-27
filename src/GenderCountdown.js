@@ -22,10 +22,12 @@ export default function GenderCountdown() {
     const displayEl = document.getElementById('counter');
     const genderEl = document.getElementById('gender');
 
+    // Reset body styling
     body.style.backgroundColor = 'darkseagreen';
     body.style.color = '';
     body.style.textShadow = '';
 
+    // Create and style video
     const video = document.createElement('video');
     video.src = videoSrc;
     video.autoplay = true;
