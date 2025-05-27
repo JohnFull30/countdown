@@ -1,7 +1,9 @@
 // src/CountdownSetup.js
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, TextField, Button } from '@mui/material';
+import { Box, Typography, Button, TextField } from '@mui/material';
+import Flicking from "@egjs/react-flicking";
+import "@egjs/react-flicking/dist/flicking.css";
 
 const GENDER_STYLES = {
   boy: {
@@ -18,41 +20,15 @@ const GENDER_STYLES = {
   }
 };
 
-// simple JS URL validator
-const isValidUrl = (url) => {
-  try {
-    new URL(url);
-    return true;
-  } catch {
-    return false;
-  }
-};
+const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
 
 export const CountdownSetup = () => {
-  const [duration, setDuration]   = useState(10);
-  const [gender,   setGender]     = useState('boy');
+  const [duration, setDuration] = useState(10);
+  const [gender, setGender] = useState('boy');
   const [customGif, setCustomGif] = useState('');
-  const [urlError,  setUrlError]  = useState(false);
   const navigate = useNavigate();
 
-  const handleDuration = e => {
-    const val = Math.min(30, Math.max(1, Number(e.target.value)));
-    setDuration(val);
-  };
-
-  const handleGifChange = e => {
-    const val = e.target.value;
-    setCustomGif(val);
-    // only validate non-empty values
-    if (val === '' || isValidUrl(val)) {
-      setUrlError(false);
-    } else {
-      setUrlError(true);
-    }
-  };
-
   const handleSubmit = () => {
-    if (urlError) return;
     navigate('/countdown', {
       state: { duration, gender, customGifUrl: customGif }
     });
@@ -72,17 +48,17 @@ export const CountdownSetup = () => {
           width: 100,
           ...(isSelected
             ? {
-                bgcolor: main,
-                color: text,
-                '&:hover': { bgcolor: dark }
-              }
+              bgcolor: main,
+              color: text,
+              '&:hover': { bgcolor: dark }
+            }
             : {
-                borderColor: main,
-                borderWidth: '2px',
-                borderStyle: 'solid',
-                color: main,
-                '&:hover': { bgcolor: hoverBg }
-              })
+              borderColor: main,
+              borderWidth: '2px',
+              borderStyle: 'solid',
+              color: main,
+              '&:hover': { bgcolor: hoverBg }
+            })
         }}
       >
         {key.toUpperCase()}
@@ -91,76 +67,86 @@ export const CountdownSetup = () => {
   };
 
   return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        bgcolor: 'darkseagreen',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        p: 2
-      }}
-    >
+    <Box sx={{
+      minHeight: '100vh',
+      bgcolor: 'darkseagreen',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      p: 2
+    }}>
       <Typography variant="h4" gutterBottom>
         🎉 Set Your Countdown
       </Typography>
 
-      {/* Duration picker */}
-      <Box
-        sx={{
-          border: '1px solid',
-          borderColor: 'grey.500',
-          borderRadius: 2,
-          p: 1,
-          mb: 2,
-          width: 90,
-          textAlign: 'center',
-          bgcolor: 'transparent'
-        }}
-      >
-        <Typography variant="caption" display="block" gutterBottom>
-          Duration (sec)
-        </Typography>
-        <TextField
-          value={duration}
-          onChange={handleDuration}
-          type="number"
-          inputProps={{ min: 1, max: 30 }}
-          variant="standard"
-          InputProps={{
-            disableUnderline: true,
-            sx: { textAlign: 'center', fontSize: '1.25rem', py: 0 }
+      <Typography variant="caption" sx={{ fontSize: '0.8rem', color: 'black', mb: 0.5 }}>
+        Duration
+      </Typography>
+
+      <Box sx={{
+        width: 100,
+        height: 48,
+        border: '1px solid',
+        borderColor: 'grey.500',
+        borderRadius: 2,
+        mb: 3,
+        bgcolor: 'transparent',
+        overflow: 'hidden'
+      }}>
+        <Flicking
+          horizontal={false}
+          align="center"
+          defaultIndex={duration - 1}
+          bounce={20}
+          deceleration={0.0075}
+          onChanged={(e) => {
+            const val = parseInt(e.panel.element.innerText);
+            setDuration(val);
           }}
-        />
+          style={{ height: '100%', width: '100%' }}
+        >
+          {generateDurations().map((sec) => (
+            <div
+              key={sec}
+              style={{
+                height: 48,
+                width: '100%',
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontSize: "1.25rem",
+                fontWeight: 600,
+                fontFamily: "Helvetica, sans-serif",
+                color: "#000",
+                userSelect: "none",
+              }}
+            >
+              {sec}
+            </div>
+          ))}
+        </Flicking>
       </Box>
 
-      {/* Gender selector */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
         {['boy', 'girl'].map(renderGenderButton)}
       </Box>
 
-      {/* URL input with validation */}
       <TextField
         label="Custom GIF URL (optional)"
         value={customGif}
-        onChange={handleGifChange}
-        type="url"
+        onChange={e => setCustomGif(e.target.value)}
         variant="outlined"
         fullWidth
-        error={urlError}
-        helperText={urlError ? 'Please enter a valid URL' : ''}
         sx={{ maxWidth: 320, mb: 3 }}
       />
 
-      {/* Submit */}
       <Button
         variant="contained"
         size="large"
         fullWidth
         sx={{ maxWidth: 320 }}
         onClick={handleSubmit}
-        disabled={urlError}
       >
         Start Countdown
       </Button>
