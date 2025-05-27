@@ -14,11 +14,7 @@ git commit -m "$commit_message"
 git push
 
 # Deploy using npm script (pushes to gh-pages automatically)
-cp .env.web .env
-npm run build
 npm run deploy
-rm .env
-
 
 
 echo "✅ Deployed to gh-pages using npm run deploy!"
