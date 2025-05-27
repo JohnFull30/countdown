@@ -7,8 +7,13 @@ export default function GenderCountdown() {
   const [countdownStarted, setCountdownStarted] = useState(false);
   const countdownRef = useRef(null);
   const navigate = useNavigate();
-  const { state } = useLocation();
-  const { duration = 10, gender = 'boy' } = state || {};
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+
+  const duration = parseInt(searchParams.get('duration') || '10', 10);
+  const gender = searchParams.get('gender') || 'boy';
+  const customGifUrl = searchParams.get('customGifUrl') || '';
+  const videoSrc = customGifUrl || (gender === 'girl' ? '/reveal-girl.mp4' : '/reveal-boy.mp4');
 
   useEffect(() => {
     if (!countdownStarted) return;
@@ -20,8 +25,6 @@ export default function GenderCountdown() {
     body.style.backgroundColor = 'darkseagreen';
     body.style.color = '';
     body.style.textShadow = '';
-
-    const videoSrc = gender === 'girl' ? '/reveal-girl.mp4' : '/reveal-boy.mp4';
 
     const video = document.createElement('video');
     video.src = videoSrc;
@@ -66,7 +69,7 @@ export default function GenderCountdown() {
       body.style.color = '';
       body.style.textShadow = '';
     };
-  }, [countdownStarted, duration, gender]);
+  }, [countdownStarted, duration, gender, videoSrc]);
 
   return (
     <div className="countdown-container">

@@ -29,9 +29,13 @@ export const CountdownSetup = () => {
   const navigate = useNavigate();
 
   const handleSubmit = () => {
-    navigate('/countdown', {
-      state: { duration, gender, customGifUrl: customGif }
-    });
+    const query = new URLSearchParams({
+      duration: duration.toString(),
+      gender,
+      customGifUrl: customGif
+    }).toString();
+
+    navigate(`/countdown?${query}`);
   };
 
   const renderGenderButton = key => {
