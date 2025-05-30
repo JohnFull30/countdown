@@ -1,4 +1,3 @@
-// src/GenderCountdown.js
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './countdown.css';
@@ -15,7 +14,6 @@ export default function GenderCountdown() {
   const customGifUrl = searchParams.get('customGifUrl') || '';
   const videoSrc = customGifUrl || `/${gender === 'girl' ? 'girl-reveal.mp4' : 'boy-reveal.mp4'}`;
 
-
   useEffect(() => {
     if (!countdownStarted) return;
 
@@ -23,17 +21,15 @@ export default function GenderCountdown() {
     const displayEl = document.getElementById('counter');
     const genderEl = document.getElementById('gender');
 
-    // Reset body styling
     body.style.backgroundColor = 'darkseagreen';
     body.style.color = '';
     body.style.textShadow = '';
 
-    // Create and style video
     const video = document.createElement('video');
     video.src = videoSrc;
     video.autoplay = true;
     video.loop = true;
-    video.muted = true;
+    video.muted = true; // required for autoplay to work on all browsers
     video.playsInline = true;
 
     Object.assign(video.style, {
