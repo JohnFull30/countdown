@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import confetti from 'canvas-confetti';
 import './countdown.css';
 
 export default function GenderCountdown() {
   const [countdownStarted, setCountdownStarted] = useState(false);
   const [revealPhase, setRevealPhase] = useState(false);
+  const [confettiFired, setConfettiFired] = useState(false);
   const countdownRef = useRef(null);
   const videoRef = useRef(null);
   const navigate = useNavigate();
@@ -17,7 +19,6 @@ export default function GenderCountdown() {
   const base = process.env.PUBLIC_URL || '';
   const videoSrc = customGifUrl || `${base}/${gender === 'girl' ? 'girl-reveal.mp4' : 'boy-reveal.mp4'}`;
 
-
   useEffect(() => {
     if (!countdownStarted) return;
 
@@ -25,7 +26,7 @@ export default function GenderCountdown() {
     const displayEl = document.getElementById('counter');
     const genderEl = document.getElementById('gender');
 
-    body.style.backgroundColor = 'transparent';
+    body.style.backgroundColor = 'darkseagreen';
     body.style.color = '';
     body.style.textShadow = '';
 
@@ -37,6 +38,7 @@ export default function GenderCountdown() {
       } else {
         clearInterval(countdownRef.current);
         displayEl.style.display = 'none';
+        body.style.backgroundColor = '#000';
         setRevealPhase(true);
         body.style.color = gender === 'girl' ? '#ff627e' : 'cornflowerblue';
         body.style.textShadow = '8px 1px black';
@@ -60,8 +62,37 @@ export default function GenderCountdown() {
           console.warn('Video autoplay failed:', error);
         });
       }
+
+      // Fire confetti once
+      if (!confettiFired) {
+        setConfettiFired(true);
+        fireConfetti();
+      }
     }
   }, [revealPhase]);
+
+  const fireConfetti = () => {
+    const duration = 4 * 1000;
+    const animationEnd = Date.now() + duration;
+    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+
+    const interval = setInterval(() => {
+      const timeLeft = animationEnd - Date.now();
+
+      if (timeLeft <= 0) {
+        return clearInterval(interval);
+      }
+
+      confetti({
+        ...defaults,
+        particleCount: 60,
+        origin: {
+          x: Math.random(),
+          y: Math.random() - 0.2
+        }
+      });
+    }, 250);
+  };
 
   return (
     <div
@@ -75,6 +106,7 @@ export default function GenderCountdown() {
           muted
           loop
           playsInline
+          preload="auto"
           style={{
             position: 'fixed',
             top: 0,
@@ -84,6 +116,8 @@ export default function GenderCountdown() {
             objectFit: 'cover',
             zIndex: -1,
             pointerEvents: 'none',
+            opacity: revealPhase ? 1 : 0,
+            transition: 'opacity 0.8s ease'
           }}
         />
       )}
@@ -99,9 +133,7 @@ export default function GenderCountdown() {
         <button
           className="start-btn"
           style={{ marginTop: '2rem', fontSize: '1.5rem' }}
-          onClick={() => {
-            setCountdownStarted(true);
-          }}
+          onClick={() => setCountdownStarted(true)}
         >
           Start Countdown
         </button>
