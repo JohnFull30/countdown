@@ -4,6 +4,7 @@ import './countdown.css';
 
 export default function GenderCountdown() {
   const [countdownStarted, setCountdownStarted] = useState(false);
+  const [revealPhase, setRevealPhase] = useState(false);
   const countdownRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
@@ -25,26 +26,6 @@ export default function GenderCountdown() {
     body.style.color = '';
     body.style.textShadow = '';
 
-    const video = document.createElement('video');
-    video.src = videoSrc;
-    video.autoplay = true;
-    video.loop = true;
-    video.muted = true; // required for autoplay to work on all browsers
-    video.playsInline = true;
-
-    Object.assign(video.style, {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      zIndex: -1,
-      objectFit: 'cover',
-      display: 'none',
-    });
-
-    document.body.appendChild(video);
-
     let timer = duration;
     countdownRef.current = setInterval(() => {
       if (timer >= 0) {
@@ -53,8 +34,7 @@ export default function GenderCountdown() {
       } else {
         clearInterval(countdownRef.current);
         displayEl.style.display = 'none';
-        video.style.display = 'block';
-
+        setRevealPhase(true);
         body.style.color = gender === 'girl' ? '#ff627e' : 'cornflowerblue';
         body.style.textShadow = '8px 1px black';
         genderEl.textContent = gender === 'girl' ? "IT'S A GIRL!" : "IT'S A BOY!";
@@ -63,15 +43,33 @@ export default function GenderCountdown() {
 
     return () => {
       clearInterval(countdownRef.current);
-      video.remove();
       body.style.backgroundColor = '';
       body.style.color = '';
       body.style.textShadow = '';
     };
-  }, [countdownStarted, duration, gender, videoSrc]);
+  }, [countdownStarted, duration, gender]);
 
   return (
     <div className="countdown-container">
+      {revealPhase && (
+        <video
+          src={videoSrc}
+          autoPlay
+          muted
+          loop
+          playsInline
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100vw',
+            height: '100vh',
+            objectFit: 'cover',
+            zIndex: -1,
+          }}
+        />
+      )}
+
       <button
         className="back-btn"
         onClick={() => navigate('/', { replace: true })}
