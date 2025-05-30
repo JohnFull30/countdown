@@ -1,13 +1,13 @@
 {
   "files": {
-    "main.css": "https://JohnFull30.github.io/countdown/static/css/main.2aece860.css",
-    "main.js": "https://JohnFull30.github.io/countdown/static/js/main.f0c83dc8.js",
+    "main.css": "https://JohnFull30.github.io/countdown/static/css/main.e90c9bc2.css",
+    "main.js": "https://JohnFull30.github.io/countdown/static/js/main.6db62e29.js",
     "index.html": "https://JohnFull30.github.io/countdown/index.html",
-    "main.2aece860.css.map": "https://JohnFull30.github.io/countdown/static/css/main.2aece860.css.map",
-    "main.f0c83dc8.js.map": "https://JohnFull30.github.io/countdown/static/js/main.f0c83dc8.js.map"
+    "main.e90c9bc2.css.map": "https://JohnFull30.github.io/countdown/static/css/main.e90c9bc2.css.map",
+    "main.6db62e29.js.map": "https://JohnFull30.github.io/countdown/static/js/main.6db62e29.js.map"
   },
   "entrypoints": [
-    "static/css/main.2aece860.css",
-    "static/js/main.f0c83dc8.js"
+    "static/css/main.e90c9bc2.css",
+    "static/js/main.6db62e29.js"
   ]
 }
