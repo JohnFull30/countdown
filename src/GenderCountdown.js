@@ -14,7 +14,9 @@ export default function GenderCountdown() {
   const duration = parseInt(searchParams.get('duration') || '10', 10);
   const gender = searchParams.get('gender') || 'boy';
   const customGifUrl = searchParams.get('customGifUrl') || '';
-  const videoSrc = customGifUrl || `/${gender === 'girl' ? 'girl-reveal.mp4' : 'boy-reveal.mp4'}`;
+  const base = process.env.PUBLIC_URL || '';
+  const videoSrc = customGifUrl || `${base}/${gender === 'girl' ? 'girl-reveal.mp4' : 'boy-reveal.mp4'}`;
+
 
   useEffect(() => {
     if (!countdownStarted) return;
