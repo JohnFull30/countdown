@@ -10,7 +10,7 @@ export default function GenderCountdown() {
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
 
-  const duration = parseInt(searchParams.get('duration') || '10', 10);
+  const duration = parseInt(searchParams.get('duration') || '1', 1);
   const gender = searchParams.get('gender') || 'boy';
   const customGifUrl = searchParams.get('customGifUrl') || '';
   const videoSrc = customGifUrl || `/${gender === 'girl' ? 'girl-reveal.mp4' : 'boy-reveal.mp4'}`;
@@ -49,49 +49,58 @@ export default function GenderCountdown() {
     };
   }, [countdownStarted, duration, gender]);
 
-  return (
-    <div className="countdown-container">
-      {revealPhase && (
-        <video
-          src={videoSrc}
-          autoPlay
-          muted
-          loop
-          playsInline
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            width: '100vw',
-            height: '100vh',
-            objectFit: 'cover',
-            zIndex: -1,
-            pointerEvents: 'none'
-          }}
-        />
-      )}
+ return (
+  <div
+    className="countdown-container"
+    style={{ backgroundColor: 'transparent', position: 'relative', zIndex: 0 }}
+  >
+    {/* TEMP: Always render video for test */}
+    <video
+      src={videoSrc}
+      autoPlay
+      muted
+      loop
+      playsInline
+      controls
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        objectFit: 'cover',
+        zIndex: -1,
+        pointerEvents: 'none',
+        opacity: 1
+      }}
+    />
 
+    <button
+      className="back-btn"
+      onClick={() => navigate('/', { replace: true })}
+    >
+      Change Timer &amp; Gender
+    </button>
+
+    {!countdownStarted ? (
       <button
-        className="back-btn"
-        onClick={() => navigate('/', { replace: true })}
+        className="start-btn"
+        style={{ marginTop: '2rem', fontSize: '1.5rem' }}
+        onClick={() => {
+          console.log("Starting countdown...");
+          setCountdownStarted(true);
+          console.log("videoSrc is:", videoSrc);
+        }}
       >
-        Change Timer &amp; Gender
+        Start Countdown
       </button>
-
-      {!countdownStarted ? (
-        <button
-          className="start-btn"
-          style={{ marginTop: '2rem', fontSize: '1.5rem' }}
-          onClick={() => setCountdownStarted(true)}
-        >
-          Start Countdown
-        </button>
-      ) : (
-        <>
-          <div id="counter" style={{ fontSize: '4rem' }} />
-          <div id="gender" style={{ fontSize: '6rem' }} />
-        </>
-      )}
-    </div>
-  );
+    ) : (
+      <>
+        <div id="counter" style={{ fontSize: '4rem' }} />
+        <div id="gender" style={{ fontSize: '6rem' }} />
+      </>
+    )}
+  </div>
+);
+d
 }
