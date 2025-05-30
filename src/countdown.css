@@ -20,6 +20,7 @@ body {
   font-weight: bold;
   /* REMOVE any background-color or background shorthand here */
   background: transparent;
+  z-index: 0;
 }
 .back-btn {
   position: absolute;

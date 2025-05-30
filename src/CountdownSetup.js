@@ -23,7 +23,7 @@ const GENDER_STYLES = {
 const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
 
 export const CountdownSetup = () => {
-  const [duration, setDuration] = useState(10);
+  const [duration, setDuration] = useState(1);
   const [gender, setGender] = useState('boy');
   const [customGif, setCustomGif] = useState('');
   const navigate = useNavigate();
