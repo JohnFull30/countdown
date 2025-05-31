@@ -1,5 +1,5 @@
 // src/CountdownSetup.js
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, TextField } from '@mui/material';
 import Flicking from "@egjs/react-flicking";
@@ -26,7 +26,21 @@ export const CountdownSetup = () => {
   const [duration, setDuration] = useState(1);
   const [gender, setGender] = useState('boy');
   const [customGif, setCustomGif] = useState('');
+  const flickRef = useRef(null);
   const navigate = useNavigate();
+  const scrollDownTo = duration + 8;
+  const scrollBackTo = duration - 1;
+
+  useEffect(() => {
+    const flicking = flickRef.current;
+    if (flicking) {
+     flicking.moveTo(scrollDownTo, 600).then(() => {
+  setTimeout(() => {
+    flicking.moveTo(scrollBackTo, 600);
+  }, 700);
+});
+    }
+  }, []);
 
   const handleSubmit = () => {
     const query = new URLSearchParams({
@@ -99,6 +113,7 @@ export const CountdownSetup = () => {
         overflow: 'hidden'
       }}>
         <Flicking
+          ref={flickRef}
           horizontal={false}
           align="center"
           defaultIndex={duration - 1}
