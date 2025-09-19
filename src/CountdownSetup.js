@@ -1,82 +1,95 @@
 // src/CountdownSetup.js
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, TextField } from '@mui/material';
+import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { Box, Typography, Button, TextField } from "@mui/material";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 
 const GENDER_STYLES = {
   boy: {
-    main: 'primary.main',
-    dark: 'primary.dark',
-    text: '#fff',
-    hoverBg: 'rgba(25,118,210,0.1)'
+    main: "primary.main",
+    dark: "primary.dark",
+    text: "#fff",
+    hoverBg: "rgba(25,118,210,0.1)",
   },
   girl: {
-    main: '#ff627e',
-    dark: '#e55672',
-    text: '#fff',
-    hoverBg: 'rgba(255,98,126,0.1)'
-  }
+    main: "#ff627e",
+    dark: "#e55672",
+    text: "#fff",
+    hoverBg: "rgba(255,98,126,0.1)",
+  },
 };
 
 const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
 
 export const CountdownSetup = () => {
   const [duration, setDuration] = useState(1);
-  const [gender, setGender] = useState('boy');
-  const [customGif, setCustomGif] = useState('');
+  const [gender, setGender] = useState("boy");
+  const [customGif, setCustomGif] = useState("");
+  const [freeTries, setFreeTries] = useState(() => {
+    const saved = parseInt(localStorage.getItem("freeTries") || "3", 10);
+    return saved > 0 ? saved : 0;
+  });
   const flickRef = useRef(null);
   const navigate = useNavigate();
   const scrollDownTo = duration + 8;
   const scrollBackTo = duration - 1;
+  const isPremiumUser = false; // Change to true to test unlocked mode
 
   useEffect(() => {
     const flicking = flickRef.current;
     if (flicking) {
-     flicking.moveTo(scrollDownTo, 600).then(() => {
-  setTimeout(() => {
-    flicking.moveTo(scrollBackTo, 600);
-  }, 700);
-});
+      flicking.moveTo(scrollDownTo, 600).then(() => {
+        setTimeout(() => {
+          flicking.moveTo(scrollBackTo, 600);
+        }, 700);
+      });
     }
   }, []);
 
   const handleSubmit = () => {
-    const query = new URLSearchParams({
-      duration: duration.toString(),
-      gender,
-      customGifUrl: customGif
-    }).toString();
+    if (freeTries > 0) {
+      const newTries = freeTries - 1;
+      setFreeTries(newTries);
+      localStorage.setItem("freeTries", newTries.toString());
 
-    navigate(`/countdown?${query}`);
+      const query = new URLSearchParams({
+        duration: duration.toString(),
+        gender,
+        customGifUrl: isPremiumUser ? customGif : '',
+      }).toString();
+
+      navigate(`/countdown?${query}`);
+    } else {
+      navigate('/premium');
+    }
   };
 
-  const renderGenderButton = key => {
+  const renderGenderButton = (key) => {
     const isSelected = gender === key;
     const { main, dark, text, hoverBg } = GENDER_STYLES[key];
 
     return (
       <Button
         key={key}
-        variant={isSelected ? 'contained' : 'outlined'}
+        variant={isSelected ? "contained" : "outlined"}
         onClick={() => setGender(key)}
         size="medium"
         sx={{
           width: 100,
           ...(isSelected
             ? {
-              bgcolor: main,
-              color: text,
-              '&:hover': { bgcolor: dark }
-            }
+                bgcolor: main,
+                color: text,
+                "&:hover": { bgcolor: dark },
+              }
             : {
-              borderColor: main,
-              borderWidth: '2px',
-              borderStyle: 'solid',
-              color: main,
-              '&:hover': { bgcolor: hoverBg }
-            })
+                borderColor: main,
+                borderWidth: "2px",
+                borderStyle: "solid",
+                color: main,
+                "&:hover": { bgcolor: hoverBg },
+              }),
         }}
       >
         {key.toUpperCase()}
@@ -85,33 +98,40 @@ export const CountdownSetup = () => {
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      bgcolor: 'darkseagreen',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      p: 2
-    }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        bgcolor: "darkseagreen",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        p: 2,
+      }}
+    >
       <Typography variant="h4" gutterBottom>
         🎉 Set Your Countdown
       </Typography>
 
-      <Typography variant="caption" sx={{ fontSize: '0.8rem', color: 'black', mb: 0.5 }}>
+      <Typography
+        variant="caption"
+        sx={{ fontSize: "0.8rem", color: "black", mb: 0.5 }}
+      >
         Duration
       </Typography>
 
-      <Box sx={{
-        width: 100,
-        height: 48,
-        border: '1px solid',
-        borderColor: 'grey.500',
-        borderRadius: 2,
-        mb: 3,
-        bgcolor: 'transparent',
-        overflow: 'hidden'
-      }}>
+      <Box
+        sx={{
+          width: 100,
+          height: 48,
+          border: "1px solid",
+          borderColor: "grey.500",
+          borderRadius: 2,
+          mb: 3,
+          bgcolor: "transparent",
+          overflow: "hidden",
+        }}
+      >
         <Flicking
           ref={flickRef}
           horizontal={false}
@@ -123,14 +143,14 @@ export const CountdownSetup = () => {
             const val = parseInt(e.panel.element.innerText);
             setDuration(val);
           }}
-          style={{ height: '100%', width: '100%' }}
+          style={{ height: "100%", width: "100%" }}
         >
           {generateDurations().map((sec) => (
             <div
               key={sec}
               style={{
                 height: 48,
-                width: '100%',
+                width: "100%",
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
@@ -147,19 +167,43 @@ export const CountdownSetup = () => {
         </Flicking>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        {['boy', 'girl'].map(renderGenderButton)}
+      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
+        {["boy", "girl"].map(renderGenderButton)}
       </Box>
 
-      <TextField
-        label="Custom GIF URL (optional)"
-        value={customGif}
-        onChange={e => setCustomGif(e.target.value)}
-        variant="outlined"
-        fullWidth
-        sx={{ maxWidth: 320, mb: 3 }}
-      />
+      <Box sx={{ position: 'relative', maxWidth: 320, mb: 3, width: '100%' }}>
+        <TextField
+          label="Custom GIF URL (premium)"
+          value={customGif}
+          onChange={(e) => setCustomGif(e.target.value)}
+          variant="outlined"
+          fullWidth
+          sx={{
+            filter: isPremiumUser ? 'none' : 'blur(0.8px) contrast(80%) brightness(1.1)',
+            transition: 'filter 0.3s ease',
+          }}
+        />
+        {!isPremiumUser && (
+          <Button
+            variant="outlined"
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: '50%',
+              right: 8,
+              transform: 'translateY(-50%)',
+              zIndex: 2,
+            }}
+            onClick={() => navigate('/premium')}
+          >
+            Unlock
+          </Button>
+        )}
+      </Box>
 
+      <Typography variant="body2" sx={{ mb: 1, color: "black" }}>
+        {freeTries > 0 ? `${freeTries} free tries left` : "Please unlock premium to continue"}
+      </Typography>
       <Button
         variant="contained"
         size="large"

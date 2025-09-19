@@ -1,9 +1,9 @@
-import { CapacitorConfig } from '@capacitor/cli';
+import { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: 'com.yourname.countdown',
-  appName: 'countdown',
-  webDir: 'build',
+  appId: "com.yourname.countdown",
+  appName: "countdown",
+  webDir: "build",
 };
 
 export default config;

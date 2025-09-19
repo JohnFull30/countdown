@@ -1,8 +1,9 @@
-import React from 'react';
-import { Routes, Route } from 'react-router-dom';
-import CountdownSetup from './CountdownSetup';
-import GenderCountdown from './GenderCountdown';
-import ProtectedRoute from './ProtectedRoute';
+import React from "react";
+import { Routes, Route } from "react-router-dom";
+import CountdownSetup from "./CountdownSetup";
+import GenderCountdown from "./GenderCountdown";
+import PremiumUnlock from "./PremiumUnlock";
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+        <Route path="/premium" element={<PremiumUnlock />} />
     </Routes>
   );
 }
