@@ -1,7 +1,7 @@
 // src/CountdownSetup.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, TextField } from "@mui/material";
+import { Box, Typography, Button, TextField, IconButton, Switch, FormControlLabel } from "@mui/material";import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 
@@ -22,6 +22,9 @@ const GENDER_STYLES = {
 
 const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
 
+// 🔧 Toggle this flag to hide dev tools in production
+const devMode = true;
+
 export const CountdownSetup = () => {
   const [duration, setDuration] = useState(1);
   const [gender, setGender] = useState("boy");
@@ -30,11 +33,19 @@ export const CountdownSetup = () => {
     const saved = parseInt(localStorage.getItem("freeTries") || "3", 10);
     return saved > 0 ? saved : 0;
   });
+
+  const [fireworksEnabled, setFireworksEnabled] = useState(() => {
+    const saved = localStorage.getItem("fireworksEnabled");
+    return saved === null ? true : saved === "true";
+  });
+
+  const [devOpen, setDevOpen] = useState(false); // ✅ floating panel toggle
   const flickRef = useRef(null);
   const navigate = useNavigate();
   const scrollDownTo = duration + 8;
   const scrollBackTo = duration - 1;
-  const isPremiumUser = false; // Change to true to test unlocked mode
+
+  const isPremiumUser = localStorage.getItem("forcePremium") === "true"; // ✅ simulate premium
 
   useEffect(() => {
     const flicking = flickRef.current;
@@ -47,22 +58,33 @@ export const CountdownSetup = () => {
     }
   }, []);
 
+  useEffect(() => {
+    localStorage.setItem("fireworksEnabled", fireworksEnabled.toString());
+  }, [fireworksEnabled]);
+
   const handleSubmit = () => {
-    if (freeTries > 0) {
-      const newTries = freeTries - 1;
-      setFreeTries(newTries);
-      localStorage.setItem("freeTries", newTries.toString());
+    const usingCustomGif = !!customGif && !isPremiumUser;
+    const usingFireworks = fireworksEnabled && !isPremiumUser;
+    const usingPremium = usingCustomGif || usingFireworks;
 
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        gender,
-        customGifUrl: isPremiumUser ? customGif : '',
-      }).toString();
-
-      navigate(`/countdown?${query}`);
-    } else {
-      navigate('/premium');
+    if (usingPremium) {
+      if (freeTries > 0) {
+        const newTries = freeTries - 1;
+        setFreeTries(newTries);
+        localStorage.setItem("freeTries", newTries.toString());
+      } else {
+        return navigate("/premium");
+      }
     }
+
+    const query = new URLSearchParams({
+      duration: duration.toString(),
+      gender,
+      customGifUrl: isPremiumUser ? customGif : "",
+      fireworks: fireworksEnabled ? "true" : "false",
+    }).toString();
+
+    navigate(`/countdown?${query}`);
   };
 
   const renderGenderButton = (key) => {
@@ -107,6 +129,7 @@ export const CountdownSetup = () => {
         alignItems: "center",
         justifyContent: "center",
         p: 2,
+        position: "relative",
       }}
     >
       <Typography variant="h4" gutterBottom>
@@ -167,11 +190,38 @@ export const CountdownSetup = () => {
         </Flicking>
       </Box>
 
-      <Box sx={{ display: "flex", gap: 2, mb: 3 }}>
-        {["boy", "girl"].map(renderGenderButton)}
+      {/* Fireworks switch */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
+          alignItems: "center",
+          gap: 2,
+          mb: 3,
+        }}
+      >
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {["boy", "girl"].map(renderGenderButton)}
+        </Box>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={fireworksEnabled}
+              onChange={() => setFireworksEnabled(!fireworksEnabled)}
+              color="primary"
+            />
+          }
+          label="Fireworks"
+          sx={{
+            color: "black",
+            ml: { xs: 0, sm: 2 },
+            mt: { xs: 1, sm: 0 },
+          }}
+        />
       </Box>
 
-      <Box sx={{ position: 'relative', maxWidth: 320, mb: 3, width: '100%' }}>
+      <Box sx={{ position: "relative", maxWidth: 320, mb: 3, width: "100%" }}>
         <TextField
           label="Custom GIF URL (premium)"
           value={customGif}
@@ -179,8 +229,14 @@ export const CountdownSetup = () => {
           variant="outlined"
           fullWidth
           sx={{
-            filter: isPremiumUser ? 'none' : 'blur(0.8px) contrast(80%) brightness(1.1)',
-            transition: 'filter 0.3s ease',
+            borderRadius: 2, // ✅ adds rounded corners (theme spacing * 2)
+            "& fieldset": {
+              borderRadius: 2, // ✅ ensures the outline itself is rounded
+            },
+            filter: isPremiumUser
+              ? "none"
+              : "blur(0.8px) contrast(80%) brightness(1.1)",
+            transition: "filter 0.3s ease",
           }}
         />
         {!isPremiumUser && (
@@ -188,13 +244,13 @@ export const CountdownSetup = () => {
             variant="outlined"
             size="small"
             sx={{
-              position: 'absolute',
-              top: '50%',
+              position: "absolute",
+              top: "50%",
               right: 8,
-              transform: 'translateY(-50%)',
+              transform: "translateY(-50%)",
               zIndex: 2,
             }}
-            onClick={() => navigate('/premium')}
+            onClick={() => navigate("/premium")}
           >
             Unlock
           </Button>
@@ -202,8 +258,11 @@ export const CountdownSetup = () => {
       </Box>
 
       <Typography variant="body2" sx={{ mb: 1, color: "black" }}>
-        {freeTries > 0 ? `${freeTries} free tries left` : "Please unlock premium to continue"}
+        {freeTries > 0
+          ? `${freeTries} free tries left`
+          : "Please unlock premium to continue"}
       </Typography>
+
       <Button
         variant="contained"
         size="large"
@@ -213,6 +272,92 @@ export const CountdownSetup = () => {
       >
         Start Countdown
       </Button>
+
+      {/* ⚙️ Floating Dev Panel */}
+      {devMode && (
+        <>
+          <IconButton
+            sx={{
+              position: "fixed",
+              bottom: 16,
+              right: 16,
+              bgcolor: "white",
+              border: "1px solid gray",
+              "&:hover": { bgcolor: "lightgray" },
+            }}
+            onClick={() => setDevOpen(!devOpen)}
+          >
+            <SettingsIcon />
+          </IconButton>
+
+          {devOpen && (
+            <Box
+              sx={{
+                position: "fixed",
+                bottom: 70,
+                right: 16,
+                p: 2,
+                bgcolor: "white",
+                border: "1px solid gray",
+                borderRadius: 2,
+                boxShadow: 3,
+                width: 220,
+              }}
+            >
+              <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
+                🛠 Dev Panel
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ mb: 1 }}
+                onClick={() => {
+                  setFreeTries(3);
+                  localStorage.setItem("freeTries", "3");
+                }}
+              >
+                Reset Free Tries
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ mb: 1 }}
+                onClick={() => {
+                  if (isPremiumUser) {
+                    // ✅ reset back to basic
+                    localStorage.removeItem("forcePremium");
+                  } else {
+                    // ✅ enable premium
+                    localStorage.setItem("forcePremium", "true");
+                  }
+                  window.location.reload();
+                }}
+              >
+                {isPremiumUser ? "Disable Premium Mode" : "Force Premium Mode"}
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                onClick={() => {
+                  navigate(
+                    `/countdown?${new URLSearchParams({
+                      duration: "0",
+                      gender,
+                      customGifUrl: "",
+                      fireworks: fireworksEnabled ? "true" : "false",
+                    }).toString()}`
+                  );
+                }}
+              >
+                Skip to Reveal
+              </Button>
+            </Box>
+          )}
+        </>
+      )}
     </Box>
   );
 };

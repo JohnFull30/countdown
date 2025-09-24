@@ -1,3 +1,4 @@
+// src/GenderCountdown.js
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
@@ -16,6 +17,8 @@ export default function GenderCountdown() {
   const duration = parseInt(searchParams.get("duration") || "10", 10);
   const gender = searchParams.get("gender") || "boy";
   const customGifUrl = searchParams.get("customGifUrl") || "";
+  const fireworks = searchParams.get("fireworks") === "true"; // ← respect toggle
+
   const base = process.env.PUBLIC_URL || "";
   const videoSrc =
     customGifUrl ||
@@ -66,13 +69,13 @@ export default function GenderCountdown() {
         });
       }
 
-      // Fire confetti once
-      if (!confettiFired) {
+      // Only fire confetti if the toggle was enabled
+      if (fireworks && !confettiFired) {
         setConfettiFired(true);
         fireConfetti();
       }
     }
-  }, [revealPhase]);
+  }, [revealPhase, fireworks, confettiFired]);
 
   const fireConfetti = () => {
     const duration = 4 * 1000;
