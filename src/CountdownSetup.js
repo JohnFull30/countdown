@@ -1,9 +1,19 @@
 // src/CountdownSetup.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, TextField, IconButton, Switch, FormControlLabel } from "@mui/material";import SettingsIcon from "@mui/icons-material/Settings";
+import {
+  Box,
+  Typography,
+  Button,
+  TextField,
+  IconButton,
+  Switch,
+  FormControlLabel,
+} from "@mui/material";
+import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
+import { supabase } from "./supabaseClient"; // ⬅️ import Supabase client
 
 const GENDER_STYLES = {
   boy: {
@@ -45,7 +55,7 @@ export const CountdownSetup = () => {
   const scrollDownTo = duration + 8;
   const scrollBackTo = duration - 1;
 
-  const isPremiumUser = localStorage.getItem("forcePremium") === "true"; // ✅ simulate premium
+  const isPremiumUser = localStorage.getItem("forcePremium") === "true"; // simulate premium
 
   useEffect(() => {
     const flicking = flickRef.current;
@@ -62,7 +72,7 @@ export const CountdownSetup = () => {
     localStorage.setItem("fireworksEnabled", fireworksEnabled.toString());
   }, [fireworksEnabled]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const usingCustomGif = !!customGif && !isPremiumUser;
     const usingFireworks = fireworksEnabled && !isPremiumUser;
     const usingPremium = usingCustomGif || usingFireworks;
@@ -75,6 +85,21 @@ export const CountdownSetup = () => {
       } else {
         return navigate("/premium");
       }
+    }
+
+    // ✅ Save to Supabase
+    const { data, error } = await supabase.from("countdowns").insert([
+      {
+        duration,
+        gender,
+        custom_gif_url: isPremiumUser ? customGif : "",
+      },
+    ]);
+
+    if (error) {
+      console.error("Insert error:", error);
+    } else {
+      console.log("Countdown saved:", data);
     }
 
     const query = new URLSearchParams({
@@ -229,9 +254,9 @@ export const CountdownSetup = () => {
           variant="outlined"
           fullWidth
           sx={{
-            borderRadius: 2, // ✅ adds rounded corners (theme spacing * 2)
+            borderRadius: 2,
             "& fieldset": {
-              borderRadius: 2, // ✅ ensures the outline itself is rounded
+              borderRadius: 2,
             },
             filter: isPremiumUser
               ? "none"
@@ -313,8 +338,8 @@ export const CountdownSetup = () => {
                 fullWidth
                 sx={{ mb: 1 }}
                 onClick={() => {
-                  setFreeTries(3);
-                  localStorage.setItem("freeTries", "3");
+                  setFreeTries(5);
+                  localStorage.setItem("freeTries", "5");
                 }}
               >
                 Reset Free Tries
@@ -325,17 +350,11 @@ export const CountdownSetup = () => {
                 fullWidth
                 sx={{ mb: 1 }}
                 onClick={() => {
-                  if (isPremiumUser) {
-                    // ✅ reset back to basic
-                    localStorage.removeItem("forcePremium");
-                  } else {
-                    // ✅ enable premium
-                    localStorage.setItem("forcePremium", "true");
-                  }
+                  localStorage.setItem("forcePremium", "true");
                   window.location.reload();
                 }}
               >
-                {isPremiumUser ? "Disable Premium Mode" : "Force Premium Mode"}
+                Force Premium Mode
               </Button>
               <Button
                 variant="outlined"
