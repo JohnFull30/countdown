@@ -1,0 +1,16 @@
+{
+  "icon": {
+    "sources": [
+      {
+        "src": "assets/icon.png"
+      }
+    ]
+  },
+  "splash": {
+    "sources": [
+      {
+        "src": "assets/splash.png"
+      }
+    ]
+  }
+}

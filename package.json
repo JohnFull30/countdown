@@ -1,0 +1,61 @@
+{
+  "name": "genderreveal",
+  "version": "1.0.0",
+  "description": "",
+  "main": "countdown.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JohnFull30/countdown.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/JohnFull30/countdown/issues"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:ios": "env-cmd -f .env.ios react-scripts build",
+    "build:web": "env-cmd -f .env.web react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "predeploy": "npm run build:web",
+    "deploy": "gh-pages -d build",
+    "heroku-postbuild": "npm run build"
+  },
+  "dependencies": {
+    "@capacitor/cli": "^7.2.0",
+    "@capacitor/core": "^7.2.0",
+    "@capacitor/ios": "^7.2.0",
+    "@egjs/react-flicking": "^4.13.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/icons-material": "^7.3.2",
+    "@mui/material": "^7.1.0",
+    "@supabase/supabase-js": "^2.57.4",
+    "canvas-confetti": "^1.9.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.5.3",
+    "react-scripts": "^5.0.1",
+    "web-vitals": "^2.1.4"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^1.0.5",
+    "@types/node": "^22.15.21",
+    "env-cmd": "^10.1.0",
+    "gh-pages": "^4.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
