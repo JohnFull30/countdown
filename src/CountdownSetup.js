@@ -57,6 +57,13 @@ export const CountdownSetup = () => {
 
   const isPremiumUser = localStorage.getItem("forcePremium") === "true"; // simulate premium
 
+  // ✅ Fix: if user came back from Stripe, forward to /canceled
+  useEffect(() => {
+    if (document.referrer && document.referrer.includes("stripe.com")) {
+      navigate("/canceled", { replace: true });
+    }
+  }, [navigate]);
+
   useEffect(() => {
     const flicking = flickRef.current;
     if (flicking) {

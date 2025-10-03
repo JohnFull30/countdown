@@ -4,6 +4,9 @@ import CountdownSetup from "./CountdownSetup";
 import GenderCountdown from "./GenderCountdown";
 import PremiumUnlock from "./PremiumUnlock";
 import ProtectedRoute from "./ProtectedRoute";
+import PaymentSuccess from "./PaymentSuccess";
+import PaymentCanceled from "./PaymentCanceled";
+import PaymentFailed from "./PaymentFailed";
 
 export default function App() {
   return (
@@ -17,7 +20,10 @@ export default function App() {
           </ProtectedRoute>
         }
       />
-        <Route path="/premium" element={<PremiumUnlock />} />
+      <Route path="/premium" element={<PremiumUnlock />} />
+      <Route path="/payment-success" element={<PaymentSuccess />} />
+      <Route path="/payment-canceled" element={<PaymentCanceled />} />
+      <Route path="/payment-failed" element={<PaymentFailed />} />
     </Routes>
   );
 }
