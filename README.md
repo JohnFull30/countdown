@@ -1,183 +1,175 @@
-# Supabase CLI
+# 🎉 Gender Reveal Countdown App
 
-[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
-](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
+> A minimal React app for creating custom gender reveal countdowns — built with React, MUI, and Capacitor (for mobile builds).
 
-[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
+---
 
-This repository contains all the functionality for Supabase CLI.
+## 🚀 Quick Start
 
-- [x] Running Supabase locally
-- [x] Managing database migrations
-- [x] Creating and deploying Supabase Functions
-- [x] Generating types directly from your database schema
-- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
+1. **Clone the repo**
 
-## Getting started
+   ```bash
+   git clone https://github.com/JohnFull30/countdown.git
+   cd countdown
+   ```
 
-### Install the CLI
+2. **Install dependencies**
 
-Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm i supabase --save-dev
-```
+3. **Run locally**
 
-To install the beta release channel:
+   ```bash
+   npm start
+   ```
 
-```bash
-npm i supabase@beta --save-dev
-```
+   The app will open at:
+   **[http://localhost:3000](http://localhost:3000)**
 
-When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
+---
 
-```
-NODE_OPTIONS=--no-experimental-fetch yarn add supabase
-```
+## 🧩 App Overview
 
-> **Note**
-For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
+| File                 | Description                                                                                          |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `App.js`             | Routes between the setup page and countdown screen. Uses `ProtectedRoute` to prevent refresh errors. |
+| `CountdownSetup.js`  | Main setup page for users to select duration, gender, and optional custom GIF URL.                   |
+| `GenderCountdown.js` | Handles countdown logic, background GIFs, and final reveal animation.                                |
+| `ProtectedRoute.js`  | Redirects users back to setup if they try to access `/countdown` directly.                           |
+| `countdown.css`      | Styles for both pages, including layout, buttons, and responsive positioning.                        |
+| `index.js`           | Wraps the app in a `HashRouter` for GitHub Pages compatibility.                                      |
+| `reportWebVitals.js` | (Optional) Performance logging for React metrics.                                                    |
+| `scripts/*.sh`       | Bash scripts for Git branching, deployment, and cleanup. (See below 👇)                              |
 
-<details>
-  <summary><b>macOS</b></summary>
+---
 
-  Available via [Homebrew](https://brew.sh). To install:
+## 🌱 Git Branch Workflow
 
-  ```sh
-  brew install supabase/tap/supabase
-  ```
+You’re using a **branch-based workflow** with automation scripts:
 
-  To install the beta release channel:
-  
-  ```sh
-  brew install supabase/tap/supabase-beta
-  brew link --overwrite supabase-beta
-  ```
-  
-  To upgrade:
+| Script             | Purpose                                                                 |
+| ------------------ | ----------------------------------------------------------------------- |
+| `choose-script.sh` | Menu-driven script to deploy, create, or delete branches interactively. |
+| `branchscript.sh`  | Creates and switches to a new feature branch from `main`.               |
+| `deletescript.sh`  | Deletes local + remote branches safely.                                 |
+| `deploy.sh`        | Commits and deploys to `gh-pages` via `npm run deploy`.                 |
 
-  ```sh
-  brew upgrade supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Windows</b></summary>
-
-  Available via [Scoop](https://scoop.sh). To install:
-
-  ```powershell
-  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-  scoop install supabase
-  ```
-
-  To upgrade:
-
-  ```powershell
-  scoop update supabase
-  ```
-</details>
-
-<details>
-  <summary><b>Linux</b></summary>
-
-  Available via [Homebrew](https://brew.sh) and Linux packages.
-
-  #### via Homebrew
-
-  To install:
-
-  ```sh
-  brew install supabase/tap/supabase
-  ```
-
-  To upgrade:
-
-  ```sh
-  brew upgrade supabase
-  ```
-
-  #### via Linux packages
-
-  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
-
-  ```sh
-  sudo apk add --allow-untrusted <...>.apk
-  ```
-
-  ```sh
-  sudo dpkg -i <...>.deb
-  ```
-
-  ```sh
-  sudo rpm -i <...>.rpm
-  ```
-
-  ```sh
-  sudo pacman -U <...>.pkg.tar.zst
-  ```
-</details>
-
-<details>
-  <summary><b>Other Platforms</b></summary>
-
-  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
-
-  ```sh
-  go install github.com/supabase/cli@latest
-  ```
-
-  Add a symlink to the binary in `$PATH` for easier access:
-
-  ```sh
-  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
-  ```
-
-  This works on other non-standard Linux distros.
-</details>
-
-<details>
-  <summary><b>Community Maintained Packages</b></summary>
-
-  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
-  To install in your working directory:
-
-  ```bash
-  pkgx install supabase
-  ```
-
-  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
-</details>
-
-### Run the CLI
+**Example usage:**
 
 ```bash
-supabase bootstrap
+./choose-script.sh
 ```
 
-Or using npx:
+Then select:
+
+* **Option 1:** Deploy Project
+* **Option 2:** Create New Branch
+* **Option 3:** Delete Branch
+
+---
+
+## 💻 Development Commands
+
+| Command          | Description                                               |
+| ---------------- | --------------------------------------------------------- |
+| `npm start`      | Run app locally                                           |
+| `npm test`       | Run Jest test suite                                       |
+| `npm run build`  | Create production build                                   |
+| `npm run deploy` | Push production build to GitHub Pages (`gh-pages` branch) |
+
+---
+
+## 📱 Mobile Build (Capacitor)
+
+You can also run the app as a mobile build:
 
 ```bash
-npx supabase bootstrap
+npx cap add ios
+npx cap open ios
 ```
 
-The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
+For Android:
 
-## Docs
-
-Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
-
-## Breaking changes
-
-We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
-
-However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
-
-## Developing
-
-To run from source:
-
-```sh
-# Go >= 1.22
-go run . help
+```bash
+npx cap add android
+npx cap open android
 ```
+
+---
+
+## 🧠 If You Forget Everything (Amnesia Mode)
+
+1. Open VS Code and make sure you’re in the correct folder:
+
+   ```
+   cd countdown
+   ```
+2. Run:
+
+   ```
+   ./choose-script.sh
+   ```
+
+   → Option 2 to make a branch (e.g. `fix-ui`)
+   → Option 1 to deploy after testing
+3. Test changes locally (`npm start`)
+4. Commit with a witty message (you know the drill 😎)
+5. Run `./choose-script.sh` again → deploy when ready
+
+---
+
+## 🧱 Design Philosophy
+
+* **Minimal UI** — clean, Apple/Turo-inspired.
+* **Responsive** — works perfectly on mobile and desktop.
+* **No external dependencies for reveal GIFs** — supports local `.mp4` video backgrounds (Option B).
+* **User flow:**
+
+  1. Set timer and gender
+  2. Start countdown
+  3. Reveal “It’s a Boy/Girl” with background animation
+
+---
+
+## 🧠 Supabase Integration (Optional)
+
+If you plan to extend the app with Supabase (for saving user data, managing premium tiers, etc.):
+
+1. Install the Supabase CLI
+
+   ```bash
+   npm install supabase --save-dev
+   ```
+2. Initialize your project
+
+   ```bash
+   npx supabase init
+   ```
+3. Connect your project with your Supabase dashboard and environment variables in `.env.local`.
+
+See [Supabase CLI Docs](https://supabase.com/docs/reference/cli/about) for full reference.
+
+---
+
+## 🧩 Future Additions
+
+* 🎆 Fireworks toggle (already queued for premium mode)
+* 🌈 Custom video uploads
+* 🔒 Stripe paywall integration
+* 📲 Shareable reveal links
+* 🧠 LocalStorage for saving setups
+
+---
+
+## 🪄 Credits
+
+Built by **John Fuller**
+Assisted by **Chip (ChatGPT)** — your friendly code co-pilot.
+
+---
+
+## 🧰 License
+
+MIT License © 2025 John Fuller
