@@ -1,6 +1,9 @@
 {
   "name": "genderreveal",
   "version": "1.0.0",
+  "engines": {
+    "node": "22.x"
+  },
   "description": "",
   "main": "countdown.js",
   "repository": {
@@ -57,8 +60,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "engines": {
-    "node": "18.x"
-  }
+  } 
 }
