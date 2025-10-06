@@ -4,7 +4,7 @@
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 1. **Clone the repo**
 
@@ -30,7 +30,7 @@
 
 ---
 
-## 🧩 App Overview
+## App Overview
 
 | File                 | Description                                                                                          |
 | -------------------- | ---------------------------------------------------------------------------------------------------- |
@@ -41,11 +41,11 @@
 | `countdown.css`      | Styles for both pages, including layout, buttons, and responsive positioning.                        |
 | `index.js`           | Wraps the app in a `HashRouter` for GitHub Pages compatibility.                                      |
 | `reportWebVitals.js` | (Optional) Performance logging for React metrics.                                                    |
-| `scripts/*.sh`       | Bash scripts for Git branching, deployment, and cleanup. (See below 👇)                              |
+| `scripts/*.sh`       | Bash scripts for Git branching, deployment, and cleanup. (See below )                              |
 
 ---
 
-## 🌱 Git Branch Workflow
+## Git Branch Workflow
 
 You’re using a **branch-based workflow** with automation scripts:
 
@@ -99,7 +99,7 @@ npx cap open android
 
 ---
 
-## 🧠 If You Forget Everything (Amnesia Mode)
+##  If You Forget Everything (Amnesia Mode)
 
 1. Open VS Code and make sure you’re in the correct folder:
 
@@ -115,12 +115,11 @@ npx cap open android
    → Option 2 to make a branch (e.g. `fix-ui`)
    → Option 1 to deploy after testing
 3. Test changes locally (`npm start`)
-4. Commit with a witty message (you know the drill 😎)
 5. Run `./choose-script.sh` again → deploy when ready
 
 ---
 
-## 🧱 Design Philosophy
+## Design Philosophy
 
 * **Minimal UI** — clean, Apple/Turo-inspired.
 * **Responsive** — works perfectly on mobile and desktop.
@@ -153,23 +152,23 @@ See [Supabase CLI Docs](https://supabase.com/docs/reference/cli/about) for full 
 
 ---
 
-## 🧩 Future Additions
+## Future Additions
 
-* 🎆 Fireworks toggle (already queued for premium mode)
-* 🌈 Custom video uploads
-* 🔒 Stripe paywall integration
-* 📲 Shareable reveal links
-* 🧠 LocalStorage for saving setups
+* Fireworks toggle (already queued for premium mode)
+* Custom video uploads
+* Stripe paywall integration
+* Shareable reveal links
+* LocalStorage for saving setups
 
 ---
 
-## 🪄 Credits
+## Credits
 
 Built by **John Fuller**
 Assisted by **Chip (ChatGPT)** — your friendly code co-pilot.
 
 ---
 
-## 🧰 License
+## License
 
 MIT License © 2025 John Fuller
