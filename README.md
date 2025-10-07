@@ -121,7 +121,7 @@ npx cap open android
 
 ## Design Philosophy
 
-* **Minimal UI** — clean, Apple/Turo-inspired.
+* **Minimal UI** — clean, minimal ui.
 * **Responsive** — works perfectly on mobile and desktop.
 * **No external dependencies for reveal GIFs** — supports local `.mp4` video backgrounds (Option B).
 * **User flow:**
