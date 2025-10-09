@@ -13,7 +13,8 @@ import {
 import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
-import { supabase } from "./supabaseClient"; // ⬅️ import Supabase client
+import { supabase } from "./supabaseClient";
+
 
 const GENDER_STYLES = {
   boy: {
@@ -31,8 +32,6 @@ const GENDER_STYLES = {
 };
 
 const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
-
-// 🔧 Toggle this flag to hide dev tools in production
 const devMode = true;
 
 export const CountdownSetup = () => {
@@ -43,26 +42,20 @@ export const CountdownSetup = () => {
     const saved = parseInt(localStorage.getItem("freeTries") || "3", 10);
     return saved > 0 ? saved : 0;
   });
-
   const [fireworksEnabled, setFireworksEnabled] = useState(() => {
     const saved = localStorage.getItem("fireworksEnabled");
     return saved === null ? true : saved === "true";
   });
+  const [devOpen, setDevOpen] = useState(false);
 
-  const [devOpen, setDevOpen] = useState(false); // ✅ floating panel toggle
   const flickRef = useRef(null);
   const navigate = useNavigate();
   const scrollDownTo = duration + 8;
   const scrollBackTo = duration - 1;
 
-  const isPremiumUser = localStorage.getItem("forcePremium") === "true"; // simulate premium
+  const isPremiumUser = localStorage.getItem("forcePremium") === "true";
 
-  // ✅ Fix: if user came back from Stripe, forward to /canceled
-  useEffect(() => {
-    if (document.referrer && document.referrer.includes("stripe.com")) {
-      navigate("/canceled", { replace: true });
-    }
-  }, [navigate]);
+  // NOTE: Removed the "if referrer is stripe.com ⇒ canceled" logic. It caused false cancels.
 
   useEffect(() => {
     const flicking = flickRef.current;
@@ -73,7 +66,7 @@ export const CountdownSetup = () => {
         }, 700);
       });
     }
-  }, []);
+  }, []); // only on mount
 
   useEffect(() => {
     localStorage.setItem("fireworksEnabled", fireworksEnabled.toString());
@@ -94,7 +87,6 @@ export const CountdownSetup = () => {
       }
     }
 
-    // ✅ Save to Supabase
     const { data, error } = await supabase.from("countdowns").insert([
       {
         duration,
@@ -305,7 +297,7 @@ export const CountdownSetup = () => {
         Start Countdown
       </Button>
 
-      {/* ⚙️ Floating Dev Panel */}
+      {/* ⚙️ Dev Panel */}
       {devMode && (
         <>
           <IconButton
@@ -333,7 +325,7 @@ export const CountdownSetup = () => {
                 border: "1px solid gray",
                 borderRadius: 2,
                 boxShadow: 3,
-                width: 220,
+                width: 240,
               }}
             >
               <Typography variant="caption" sx={{ display: "block", mb: 1 }}>

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Box,
@@ -9,16 +9,10 @@ import {
   ListItem,
   ListItemText,
 } from "@mui/material";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
 export default function PremiumUnlock() {
   const navigate = useNavigate();
-
-  // If user lands here after leaving Stripe, redirect to /canceled
-  useEffect(() => {
-    if (document.referrer && document.referrer.includes("stripe.com")) {
-      navigate("/canceled", { replace: true });
-    }
-  }, [navigate]);
 
   const handleUnlock = async () => {
     try {
@@ -28,24 +22,27 @@ export default function PremiumUnlock() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // ✅ THIS was the bug: Authorization must be inside headers
             Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({}),
+          body: JSON.stringify({}), // add userId if you want it in metadata
         }
       );
-      const res = response;
-      if (!res.ok) {
-        // surface the server error to help debugging (401 meant missing/invalid auth header)
-        const text = await res.text();
+
+      if (!response.ok) {
+        const text = await response.text();
         console.error("Checkout create failed:", text);
         alert("Failed to start checkout");
         return;
       }
 
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url; // Redirect to Stripe Checkout
+      const data = await response.json();
+      if (data?.url) {
+        // Flag before leaving so we can detect "back" from Stripe reliably
+        try {
+          sessionStorage.setItem("startedCheckout", "1");
+          localStorage.setItem("startedCheckout", "1");
+        } catch {}
+        window.location.assign(data.url);
       } else {
         alert("Failed to start checkout");
       }
@@ -64,8 +61,46 @@ export default function PremiumUnlock() {
         alignItems: "center",
         justifyContent: "center",
         p: 2,
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Floating, glassy back button (top-left) */}
+      <Button
+        aria-label="Back to setup"
+        onClick={() => navigate("/")}
+        startIcon={<ArrowBackIosNewIcon fontSize="small" />}
+        sx={{
+          position: "fixed",
+          top: { xs: 8, sm: 16 },
+          left: { xs: 8, sm: 16 },
+          zIndex: 10,
+          borderRadius: "999px",
+          px: { xs: 1.25, sm: 2 },
+          py: 1,
+          minWidth: "auto",
+          textTransform: "none",
+          fontWeight: 600,
+          boxShadow: 2,
+          color: "text.primary",
+          border: "1px solid rgba(0,0,0,0.08)",
+          backgroundColor: "rgba(255,255,255,0.6)",
+          backdropFilter: "saturate(180%) blur(12px)",
+          "&:hover": {
+            boxShadow: 3,
+            backgroundColor: "rgba(255,255,255,0.8)",
+          },
+          "& .MuiButton-startIcon": {
+            mr: { xs: 0, sm: 1 },
+          },
+        }}
+      >
+        {/* Hide text on extra-small screens; show icon-only on phones */}
+        <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+          Back
+        </Box>
+      </Button>
+
       <Box
         sx={{
           bgcolor: "white",
@@ -81,8 +116,8 @@ export default function PremiumUnlock() {
           🎁 Make It Yours
         </Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          Want to use your own GIF or video background for the countdown? Unlock
-          premium to make your gender reveal unforgettable.
+          Unlock fireworks, custom themes, and advanced reveal options in the
+          Countdown app.
         </Typography>
 
         <Divider sx={{ my: 2 }} />
@@ -92,13 +127,13 @@ export default function PremiumUnlock() {
         </Typography>
         <List dense sx={{ textAlign: "left", mx: "auto", maxWidth: 360 }}>
           <ListItem>
-            <ListItemText primary="✔ Upload your own reveal GIF" />
+            <ListItemText primary="✔ Upload your own reveal GIF/video" />
           </ListItem>
           <ListItem>
             <ListItemText primary="✔ Unlock custom background themes" />
           </ListItem>
           <ListItem>
-            <ListItemText primary="✔ Add a personal message or baby's name (coming soon!)" />
+            <ListItemText primary="✔ Add a personal message or baby's name (soon)" />
           </ListItem>
           <ListItem>
             <ListItemText primary="✔ Support independent creators" />
@@ -116,7 +151,8 @@ export default function PremiumUnlock() {
         </Button>
 
         <Typography variant="caption" display="block" sx={{ mt: 2 }}>
-          You’ll be redirected back once unlocked.
+          You’ll be redirected back after checkout. Use Stripe’s back/cancel to
+          return.
         </Typography>
       </Box>
     </Box>
