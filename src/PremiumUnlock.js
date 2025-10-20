@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -13,9 +13,19 @@ import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 
 export default function PremiumUnlock() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleUnlock = async () => {
     try {
+      const origin = window.location.origin;
+
+      // Where Stripe should go after payment success and when user presses "Back"
+      // Change these to whatever route you want.
+      const successUrl = `${origin}/payment-success`;
+      const cancelUrl =
+        // Example: return to the page you started from (here, /premium)
+        `${origin}/payment-canceled`;
+
       const response = await fetch(
         `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/create-checkout-session`,
         {
@@ -24,7 +34,10 @@ export default function PremiumUnlock() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
           },
-          body: JSON.stringify({}), // add userId if you want it in metadata
+          body: JSON.stringify({
+            successUrl,
+            cancelUrl, // ← drives the Stripe "Back" link
+          }),
         }
       );
 
@@ -37,7 +50,6 @@ export default function PremiumUnlock() {
 
       const data = await response.json();
       if (data?.url) {
-        // Flag before leaving so we can detect "back" from Stripe reliably
         try {
           sessionStorage.setItem("startedCheckout", "1");
           localStorage.setItem("startedCheckout", "1");
@@ -95,7 +107,6 @@ export default function PremiumUnlock() {
           },
         }}
       >
-        {/* Hide text on extra-small screens; show icon-only on phones */}
         <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
           Back
         </Box>

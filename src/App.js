@@ -17,6 +17,7 @@ function StripeReturnGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("location change", location.pathname);
     const hasStarted =
       sessionStorage.getItem("startedCheckout") === "1" ||
       localStorage.getItem("startedCheckout") === "1";
@@ -39,6 +40,7 @@ function StripeReturnGuard() {
 
     // BFCache restore (Safari/iOS)
     const onPageShow = (e) => {
+      console.log("pageshow", e);
       if (e.persisted) {
         const started =
           sessionStorage.getItem("startedCheckout") === "1" ||
