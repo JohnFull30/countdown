@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 import { supabase } from "./supabaseClient";
+import { useEntitlement } from "./useEntitlement";
 
 const GENDER_STYLES = {
   boy: {
@@ -31,15 +32,9 @@ const GENDER_STYLES = {
 };
 
 const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
-const devMode = true;
 
-function makeShortId(len = 6) {
-  const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-  let out = "";
-  for (let i = 0; i < len; i++)
-    out += alphabet[Math.floor(Math.random() * alphabet.length)];
-  return out;
-}
+// 🔧 Toggle this flag to hide dev tools in production
+const devMode = true;
 
 export const CountdownSetup = () => {
   const [duration, setDuration] = useState(1);
@@ -53,23 +48,29 @@ export const CountdownSetup = () => {
     const saved = localStorage.getItem("fireworksEnabled");
     return saved === null ? true : saved === "true";
   });
-  const [secretMode, setSecretMode] = useState(() => {
-    const saved = localStorage.getItem("secretMode");
-    return saved === "true";
-  });
+
+  const { loading: entitlementLoading, isPremium } = useEntitlement();
+  const isPremiumUser = isPremium; // ← derived from Supabase entitlement
 
   const [devOpen, setDevOpen] = useState(false);
   const flickRef = useRef(null);
   const navigate = useNavigate();
+  const scrollDownTo = duration + 8;
+  const scrollBackTo = duration - 1;
 
-  const isPremiumUser = localStorage.getItem("forcePremium") === "true";
+  // If user came back from Stripe, forward to canceled page (legacy guard)
+  useEffect(() => {
+    if (document.referrer && document.referrer.includes("stripe.com")) {
+      navigate("/canceled", { replace: true });
+    }
+  }, [navigate]);
 
   useEffect(() => {
     const flicking = flickRef.current;
     if (flicking) {
-      flicking.moveTo(duration + 8, 600).then(() => {
+      flicking.moveTo(scrollDownTo, 600).then(() => {
         setTimeout(() => {
-          flicking.moveTo(duration - 1, 600);
+          flicking.moveTo(scrollBackTo, 600);
         }, 700);
       });
     }
@@ -79,11 +80,8 @@ export const CountdownSetup = () => {
     localStorage.setItem("fireworksEnabled", fireworksEnabled.toString());
   }, [fireworksEnabled]);
 
-  useEffect(() => {
-    localStorage.setItem("secretMode", secretMode.toString());
-  }, [secretMode]);
-
   const handleSubmit = async () => {
+    // Gate premium-only inputs when not entitled
     const usingCustomGif = !!customGif && !isPremiumUser;
     const usingFireworks = fireworksEnabled && !isPremiumUser;
     const usingPremium = usingCustomGif || usingFireworks;
@@ -98,80 +96,32 @@ export const CountdownSetup = () => {
       }
     }
 
-    const { error } = await supabase.from("countdowns").insert([
+    const { data, error } = await supabase.from("countdowns").insert([
       {
         duration,
         gender,
         custom_gif_url: isPremiumUser ? customGif : "",
       },
     ]);
-    if (error) console.error("Insert error:", error);
-
-    if (!secretMode) {
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        gender,
-        customGifUrl: isPremiumUser ? customGif : "",
-        fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      return navigate(`/countdown?${query}`);
+    if (error) {
+      console.error("Insert error:", error);
+    } else {
+      console.log("Countdown saved:", data);
     }
 
-    try {
-      const revealId = makeShortId(6);
-      const { error: revealErr } = await supabase.from("reveals").upsert([
-        {
-          id: revealId,
-          gender,
-          duration_seconds: duration,
-          fireworks: fireworksEnabled,
-          custom_gif_url: isPremiumUser ? customGif : "",
-        },
-      ]);
-      if (revealErr) throw revealErr;
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        revealId,
-        customGifUrl: isPremiumUser ? customGif : "",
-        fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      navigate(`/countdown?${query}`);
-    } catch (e) {
-      console.error("Reveal save exception:", e);
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        gender,
-        customGifUrl: isPremiumUser ? customGif : "",
-        fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      navigate(`/countdown?${query}`);
-    }
+    const query = new URLSearchParams({
+      duration: duration.toString(),
+      gender,
+      customGifUrl: isPremiumUser ? customGif : "",
+      fireworks: fireworksEnabled ? "true" : "false",
+    }).toString();
+
+    navigate(`/countdown?${query}`);
   };
 
   const renderGenderButton = (key) => {
     const isSelected = gender === key;
     const { main, dark, text, hoverBg } = GENDER_STYLES[key];
-
-    if (secretMode) {
-      return (
-        <Button
-          key={key}
-          variant="outlined"
-          onClick={() => setGender(key)}
-          size="medium"
-          sx={{
-            width: 100,
-            borderColor: "grey.600",
-            borderWidth: "2px",
-            borderStyle: "solid",
-            color: "black",
-            "&:hover": { bgcolor: "rgba(0,0,0,0.06)" },
-          }}
-        >
-          {key.toUpperCase()}
-        </Button>
-      );
-    }
 
     return (
       <Button
@@ -182,11 +132,7 @@ export const CountdownSetup = () => {
         sx={{
           width: 100,
           ...(isSelected
-            ? {
-                bgcolor: main,
-                color: text,
-                "&:hover": { bgcolor: dark },
-              }
+            ? { bgcolor: main, color: text, "&:hover": { bgcolor: dark } }
             : {
                 borderColor: main,
                 borderWidth: "2px",
@@ -211,6 +157,7 @@ export const CountdownSetup = () => {
         alignItems: "center",
         justifyContent: "center",
         p: 2,
+        position: "relative",
       }}
     >
       <Typography variant="h4" gutterBottom>
@@ -232,6 +179,7 @@ export const CountdownSetup = () => {
           borderColor: "grey.500",
           borderRadius: 2,
           mb: 3,
+          bgcolor: "transparent",
           overflow: "hidden",
         }}
       >
@@ -242,10 +190,13 @@ export const CountdownSetup = () => {
           defaultIndex={duration - 1}
           bounce={20}
           deceleration={0.0075}
-          onChanged={(e) => setDuration(parseInt(e.panel.element.innerText))}
+          onChanged={(e) => {
+            const val = parseInt(e.panel.element.innerText);
+            setDuration(val);
+          }}
           style={{ height: "100%", width: "100%" }}
         >
-          {generateDurations().map((sec) => (
+          {Array.from({ length: 30 }, (_, i) => i + 1).map((sec) => (
             <div
               key={sec}
               style={{
@@ -256,6 +207,7 @@ export const CountdownSetup = () => {
                 alignItems: "center",
                 fontSize: "1.25rem",
                 fontWeight: 600,
+                fontFamily: "Helvetica, sans-serif",
                 color: "#000",
                 userSelect: "none",
               }}
@@ -266,22 +218,20 @@ export const CountdownSetup = () => {
         </Flicking>
       </Box>
 
-      {/* Gender Buttons */}
-      <Box sx={{ display: "flex", gap: 2, mb: 1 }}>
-        {["boy", "girl"].map(renderGenderButton)}
-      </Box>
-
-      {/* Switches same row under gender buttons */}
+      {/* Fireworks switch + gender buttons */}
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          justifyContent: "center",
+          flexDirection: { xs: "column", sm: "row" },
           alignItems: "center",
-          gap: 4,
+          gap: 2,
           mb: 3,
         }}
       >
+        <Box sx={{ display: "flex", gap: 2 }}>
+          {["boy", "girl"].map(renderGenderButton)}
+        </Box>
+
         <FormControlLabel
           control={
             <Switch
@@ -291,22 +241,10 @@ export const CountdownSetup = () => {
             />
           }
           label="Fireworks"
-          sx={{ color: "black" }}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={secretMode}
-              onChange={() => setSecretMode(!secretMode)}
-              color="primary"
-            />
-          }
-          label="Secret Mode"
-          sx={{ color: "black" }}
+          sx={{ color: "black", ml: { xs: 0, sm: 2 }, mt: { xs: 1, sm: 0 } }}
         />
       </Box>
 
-      {/* Custom GIF */}
       <Box sx={{ position: "relative", maxWidth: 320, mb: 3, width: "100%" }}>
         <TextField
           label="Custom GIF URL (premium)"
@@ -332,6 +270,7 @@ export const CountdownSetup = () => {
               top: "50%",
               right: 8,
               transform: "translateY(-50%)",
+              zIndex: 2,
             }}
             onClick={() => navigate("/premium")}
           >
@@ -340,11 +279,15 @@ export const CountdownSetup = () => {
         )}
       </Box>
 
-      <Typography variant="body2" sx={{ mb: 1, color: "black" }}>
-        {freeTries > 0
-          ? `${freeTries} free tries left`
-          : "Please unlock premium to continue"}
-      </Typography>
+      {!entitlementLoading && (
+        <Typography variant="body2" sx={{ mb: 1, color: "black" }}>
+          {isPremiumUser
+            ? "Premium unlocked on this device"
+            : freeTries > 0
+              ? `${freeTries} free tries left`
+              : "Please unlock premium to continue"}
+        </Typography>
+      )}
 
       <Button
         variant="contained"
@@ -356,7 +299,7 @@ export const CountdownSetup = () => {
         Start Countdown
       </Button>
 
-      {/* Dev Panel unchanged */}
+      {/* ⚙️ Dev Panel (optional) */}
       {devMode && (
         <>
           <IconButton
@@ -372,6 +315,7 @@ export const CountdownSetup = () => {
           >
             <SettingsIcon />
           </IconButton>
+
           {devOpen && (
             <Box
               sx={{
@@ -383,7 +327,7 @@ export const CountdownSetup = () => {
                 border: "1px solid gray",
                 borderRadius: 2,
                 boxShadow: 3,
-                width: 240,
+                width: 220,
               }}
             >
               <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
@@ -405,13 +349,18 @@ export const CountdownSetup = () => {
                 variant="outlined"
                 size="small"
                 fullWidth
-                sx={{ mb: 1 }}
                 onClick={() => {
-                  localStorage.setItem("forcePremium", "true");
-                  window.location.reload();
+                  navigate(
+                    `/countdown?${new URLSearchParams({
+                      duration: "0",
+                      gender,
+                      customGifUrl: "",
+                      fireworks: fireworksEnabled ? "true" : "false",
+                    }).toString()}`
+                  );
                 }}
               >
-                Force Premium Mode
+                Skip to Reveal
               </Button>
             </Box>
           )}

@@ -2,20 +2,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { stripe } from "../_shared/stripe.ts";
 
-/**
- * POST /functions/v1/create-checkout-session
- * Body (JSON):
- * {
- *   "priceId"?: string,            // optional override (else uses STRIPE_PRICE_ID)
- *   "userId"?: string,             // optional; forwarded to Stripe metadata.user_id
- *   "quantity"?: number,           // optional; defaults to 1
- *   "successUrl"?: string,         // optional; overrides default success
- *   "cancelUrl"?: string           // optional; overrides default cancel/back button
- * }
- *
- * Returns: { url: string }  // Stripe-hosted checkout URL
- */
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -29,46 +15,45 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const auth = req.headers.get("authorization");
+    if (!auth) {
+      return new Response("Unauthorized", {
+        status: 401,
+        headers: corsHeaders,
+      });
+    }
+
     const {
+      device_id,
       priceId,
-      userId,
       quantity = 1,
-      successUrl,
-      cancelUrl,
-    } = await req.json().catch(() => ({}) as any);
+    } = await req.json().catch(() => ({}));
+    const price = priceId || Deno.env.get("STRIPE_PRICE_ID");
+    if (!price) {
+      return new Response("Missing STRIPE_PRICE_ID", {
+        status: 500,
+        headers: corsHeaders,
+      });
+    }
 
-    // Fallbacks if not provided by client
-    const FRONTEND_BASE =
-      Deno.env.get("FRONTEND_BASE_URL") ?? "http://localhost:3000"; // dev default
-
-    const defaultSuccess = `${FRONTEND_BASE}/payment-success`;
-    const defaultCancel = `${FRONTEND_BASE}/payment-canceled`;
-
-    console.log("we getting the cancelUrl we want????", cancelUrl, defaultCancel);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [
-        {
-          price: priceId ?? Deno.env.get("STRIPE_PRICE_ID")!,
-          quantity,
-        },
-      ],
-      success_url: successUrl ?? defaultSuccess,
-      cancel_url: cancelUrl ?? defaultCancel, // ← Stripe “Back” uses this
-      allow_promotion_codes: false,
-      metadata: userId ? { user_id: userId } : undefined,
-      ui_mode: "hosted",
+      line_items: [{ price, quantity }],
+      success_url: `${Deno.env.get("PUBLIC_SITE_URL")}/payment-success`,
+      cancel_url: `${Deno.env.get("PUBLIC_SITE_URL")}/payment-canceled`,
+      metadata: {
+        device_id: device_id || "unknown",
+      },
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 200,
     });
-  } catch (err) {
-    console.error("create-checkout-session error:", err);
-    return new Response(JSON.stringify({ error: "Unable to create session" }), {
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 400,
+  } catch (e) {
+    console.error("create-checkout-session error:", e);
+    return new Response("Internal error", {
+      status: 500,
+      headers: corsHeaders,
     });
   }
 });
