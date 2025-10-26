@@ -64,6 +64,25 @@ export const CountdownSetup = () => {
 
   const isPremiumUser = localStorage.getItem("forcePremium") === "true";
 
+  // Dev: Reset back to Basic (remove simulated premium, restore defaults, clear Stripe flags)
+  const resetToBasic = () => {
+    try {
+      // Premium state off
+      localStorage.removeItem("forcePremium");
+      // Free tries back to default (3)
+      localStorage.setItem("freeTries", "3");
+      // Selection defaults
+      setDuration(1);
+      setGender("boy");
+      // Stripe flow flags
+      sessionStorage.removeItem("startedCheckout");
+      localStorage.removeItem("startedCheckout");
+    } finally {
+      // Hard reload to guarantee a pristine state
+      window.location.reload();
+    }
+  };
+
   useEffect(() => {
     const flicking = flickRef.current;
     if (flicking) {
@@ -389,6 +408,15 @@ export const CountdownSetup = () => {
               <Typography variant="caption" sx={{ display: "block", mb: 1 }}>
                 🛠 Dev Panel
               </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                fullWidth
+                sx={{ mb: 1 }}
+                onClick={resetToBasic}
+              >
+                Reset to Basic
+              </Button>
               <Button
                 variant="outlined"
                 size="small"
