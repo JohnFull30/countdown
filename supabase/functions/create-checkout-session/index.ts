@@ -1,22 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { stripe } from "../_shared/stripe.ts";
+import Stripe from "npm:stripe@16.7.0";
 
-/**
- * POST /functions/v1/create-checkout-session
- * Body (JSON):
- * {
- *   "priceId"?: string,            // optional override (else uses STRIPE_PRICE_ID)
- *   "userId"?: string,             // optional; forwarded to Stripe metadata.user_id
- *   "quantity"?: number,           // optional; defaults to 1
- *   "successUrl"?: string,         // optional; overrides default success
- *   "cancelUrl"?: string           // optional; overrides default cancel/back button
- * }
- *
- * Returns: { url: string }  // Stripe-hosted checkout URL
- */
-
-const corsHeaders = {
+const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
@@ -24,51 +10,61 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req: Request) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
+  if (req.method !== "POST") {
+    return new Response("Method Not Allowed", { status: 405, headers: cors });
   }
 
   try {
     const {
-      priceId,
-      userId,
-      quantity = 1,
-      successUrl,
-      cancelUrl,
-    } = await req.json().catch(() => ({}) as any);
+      deviceId,
+      userId, // optional
+      priceId, // optional override
+      product = "premium_399", // default product tag
+    } = await req.json();
 
-    // Fallbacks if not provided by client
-    const FRONTEND_BASE =
-      Deno.env.get("FRONTEND_BASE_URL") ?? "http://localhost:3000"; // dev default
+    if (!deviceId && !userId) {
+      return new Response("Missing deviceId or userId", {
+        status: 400,
+        headers: cors,
+      });
+    }
 
-    const defaultSuccess = `${FRONTEND_BASE}/payment-success`;
-    const defaultCancel = `${FRONTEND_BASE}/payment-canceled`;
+    const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY")!;
+    const STRIPE_PRICE_ID =
+      priceId ?? Deno.env.get("STRIPE_PRICE_ID_PREMIUM_399")!;
+    const PUBLIC_SITE_URL =
+      Deno.env.get("PUBLIC_SITE_URL") ?? new URL(req.url).origin;
 
-    console.log("we getting the cancelUrl we want????", cancelUrl, defaultCancel);
+    const stripe = new Stripe(STRIPE_SECRET_KEY, {
+      apiVersion: "2024-10-28.acacia", // use Stripe’s latest at build time
+    });
+
+    const successUrl = `${PUBLIC_SITE_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`;
+    const cancelUrl = `${PUBLIC_SITE_URL}/payment-canceled`;
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
-      line_items: [
-        {
-          price: priceId ?? Deno.env.get("STRIPE_PRICE_ID")!,
-          quantity,
-        },
-      ],
-      success_url: successUrl ?? defaultSuccess,
-      cancel_url: cancelUrl ?? defaultCancel, // ← Stripe “Back” uses this
-      allow_promotion_codes: false,
-      metadata: userId ? { user_id: userId } : undefined,
-      ui_mode: "hosted",
+      line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
+      success_url: successUrl,
+      cancel_url: cancelUrl,
+      metadata: {
+        product,
+        device_id: deviceId ?? "",
+        user_id: userId ?? "",
+      },
+      // Collect email to help support lookup if needed
+      customer_creation: "always",
     });
 
     return new Response(JSON.stringify({ url: session.url }), {
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 200,
+      headers: { ...cors, "Content-Type": "application/json" },
     });
-  } catch (err) {
-    console.error("create-checkout-session error:", err);
-    return new Response(JSON.stringify({ error: "Unable to create session" }), {
-      headers: { "Content-Type": "application/json", ...corsHeaders },
-      status: 400,
+  } catch (err: any) {
+    console.error("create-checkout-session error:", err?.message ?? err);
+    return new Response(`Error: ${err?.message ?? "unknown"}`, {
+      status: 500,
+      headers: cors,
     });
   }
 });
