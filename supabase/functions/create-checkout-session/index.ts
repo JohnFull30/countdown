@@ -45,11 +45,16 @@ Deno.serve(async (req: Request) => {
     const defaultCancel = `${FRONTEND_BASE}/payment-canceled`;
 
     console.log("we getting the cancelUrl we want????", cancelUrl, defaultCancel);
+    const resolvedPrice = priceId ?? Deno.env.get("STRIPE_PRICE_ID");
+    if (!resolvedPrice) {
+      throw new Error("Missing STRIPE_PRICE_ID; set secret or pass priceId");
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: [
         {
-          price: priceId ?? Deno.env.get("STRIPE_PRICE_ID")!,
+          price: resolvedPrice,
           quantity,
         },
       ],
@@ -66,7 +71,8 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err) {
     console.error("create-checkout-session error:", err);
-    return new Response(JSON.stringify({ error: "Unable to create session" }), {
+    const message = err instanceof Error ? err.message : "Unable to create session";
+    return new Response(JSON.stringify({ error: message }), {
       headers: { "Content-Type": "application/json", ...corsHeaders },
       status: 400,
     });
