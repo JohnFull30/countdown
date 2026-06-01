@@ -14,6 +14,7 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 import { supabase } from "./supabaseClient";
+import { normalizeRevealMediaUrl } from "./mediaUrl";
 
 const GENDER_STYLES = {
   boy: {
@@ -103,6 +104,7 @@ export const CountdownSetup = () => {
   }, [secretMode]);
 
   const handleSubmit = async () => {
+    const normalizedCustomGif = normalizeRevealMediaUrl(customGif);
     const usingCustomGif = !!customGif && !isPremiumUser;
     const usingFireworks = fireworksEnabled && !isPremiumUser;
     const usingPremium = usingCustomGif || usingFireworks;
@@ -121,7 +123,7 @@ export const CountdownSetup = () => {
       {
         duration,
         gender,
-        custom_gif_url: isPremiumUser ? customGif : "",
+        custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
       },
     ]);
     if (error) console.error("Insert error:", error);
@@ -130,7 +132,7 @@ export const CountdownSetup = () => {
       const query = new URLSearchParams({
         duration: duration.toString(),
         gender,
-        customGifUrl: isPremiumUser ? customGif : "",
+        customGifUrl: isPremiumUser ? normalizedCustomGif : "",
         fireworks: fireworksEnabled ? "true" : "false",
       }).toString();
       return navigate(`/countdown?${query}`);
@@ -144,14 +146,14 @@ export const CountdownSetup = () => {
           gender,
           duration_seconds: duration,
           fireworks: fireworksEnabled,
-          custom_gif_url: isPremiumUser ? customGif : "",
+          custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
         },
       ]);
       if (revealErr) throw revealErr;
       const query = new URLSearchParams({
         duration: duration.toString(),
         revealId,
-        customGifUrl: isPremiumUser ? customGif : "",
+        customGifUrl: isPremiumUser ? normalizedCustomGif : "",
         fireworks: fireworksEnabled ? "true" : "false",
       }).toString();
       navigate(`/countdown?${query}`);
@@ -160,7 +162,7 @@ export const CountdownSetup = () => {
       const query = new URLSearchParams({
         duration: duration.toString(),
         gender,
-        customGifUrl: isPremiumUser ? customGif : "",
+        customGifUrl: isPremiumUser ? normalizedCustomGif : "",
         fireworks: fireworksEnabled ? "true" : "false",
       }).toString();
       navigate(`/countdown?${query}`);

@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import "./countdown.css";
 import { supabase } from "./supabaseClient";
+import { getRevealMediaType, normalizeRevealMediaUrl } from "./mediaUrl";
 
 export default function GenderCountdown() {
   const [countdownStarted, setCountdownStarted] = useState(false);
@@ -16,9 +17,11 @@ export default function GenderCountdown() {
   const [resolvedFireworks, setResolvedFireworks] = useState(null);
   const [secretLoading, setSecretLoading] = useState(false);
   const [secretError, setSecretError] = useState("");
+  const [mediaError, setMediaError] = useState(false);
 
   const countdownRef = useRef(null);
   const videoRef = useRef(null);
+  const confettiCanvasRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -51,7 +54,7 @@ export default function GenderCountdown() {
         if (!cancelled) {
           setResolvedGender(data.gender);
           // Prefer server values where present; keep duration from URL for consistency
-          setResolvedGif(data.custom_gif_url || "");
+          setResolvedGif(normalizeRevealMediaUrl(data.custom_gif_url || ""));
           setResolvedFireworks(
             typeof data.fireworks === "boolean"
               ? data.fireworks
@@ -70,7 +73,7 @@ export default function GenderCountdown() {
     } else {
       // non-secret path (original behavior)
       setResolvedGender(genderParam || "boy");
-      setResolvedGif(customGifUrlParam || "");
+      setResolvedGif(normalizeRevealMediaUrl(customGifUrlParam || ""));
       setResolvedFireworks(fireworksParam);
     }
 
@@ -86,11 +89,18 @@ export default function GenderCountdown() {
     typeof resolvedFireworks === "boolean" ? resolvedFireworks : fireworksParam;
 
   const videoSrc =
-    customGifUrl ||
+    mediaError || !customGifUrl
+      ? `${base}/${gender === "girl" ? "girl-reveal.mp4" : "boy-reveal.mp4"}`
+      : customGifUrl;
+  const mediaType =
+    !mediaError && customGifUrl ? getRevealMediaType(customGifUrl) : "video";
+
+  const defaultVideoSrc =
     `${base}/${gender === "girl" ? "girl-reveal.mp4" : "boy-reveal.mp4"}`;
 
   useEffect(() => {
     if (!countdownStarted) return;
+    setMediaError(false);
 
     const body = document.body;
     const displayEl = document.getElementById("counter");
@@ -123,39 +133,67 @@ export default function GenderCountdown() {
       body.style.color = "";
       body.style.textShadow = "";
     };
-  }, [countdownStarted, duration, gender]);
+  }, [countdownStarted, duration, gender, customGifUrl]);
 
   useEffect(() => {
-    if (revealPhase && videoRef.current) {
+    if (!revealPhase) return;
+
+    if (videoRef.current) {
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise.catch((error) => {
           console.warn("Video autoplay failed:", error);
         });
       }
-
-      if (fireworks && !confettiFired) {
-        setConfettiFired(true);
-        fireConfetti();
-      }
     }
-  }, [revealPhase, fireworks, confettiFired]);
+
+    if (fireworks && !confettiFired) {
+      setConfettiFired(true);
+      fireConfetti();
+    }
+  }, [revealPhase, fireworks, confettiFired, mediaType, videoSrc]);
 
   const fireConfetti = () => {
+    const fire = confettiCanvasRef.current
+      ? confetti.create(confettiCanvasRef.current, {
+          resize: true,
+          useWorker: false,
+        })
+      : confetti;
     const duration = 4 * 1000;
     const animationEnd = Date.now() + duration;
     const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 999 };
+
+    fire({
+      ...defaults,
+      particleCount: 120,
+      origin: { x: 0.5, y: 0.45 },
+    });
+    fire({
+      ...defaults,
+      particleCount: 80,
+      angle: 60,
+      spread: 80,
+      origin: { x: 0, y: 0.65 },
+    });
+    fire({
+      ...defaults,
+      particleCount: 80,
+      angle: 120,
+      spread: 80,
+      origin: { x: 1, y: 0.65 },
+    });
 
     const interval = setInterval(() => {
       const timeLeft = animationEnd - Date.now();
       if (timeLeft <= 0) return clearInterval(interval);
 
-      confetti({
+      fire({
         ...defaults,
         particleCount: 60,
         origin: {
           x: Math.random(),
-          y: Math.random() - 0.2,
+          y: Math.random() * 0.55,
         },
       });
     }, 250);
@@ -174,26 +212,62 @@ export default function GenderCountdown() {
       }}
     >
       {revealPhase && (
-        <video
-          ref={videoRef}
-          src={videoSrc}
-          muted
-          loop
-          playsInline
-          preload="auto"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            objectFit: "cover",
-            zIndex: -1,
-            pointerEvents: "none",
-            opacity: revealPhase ? 1 : 0,
-            transition: "opacity 0.8s ease",
-          }}
-        />
+        <>
+          {mediaType === "video" ? (
+            <video
+              ref={videoRef}
+              src={videoSrc}
+              muted
+              loop
+              playsInline
+              preload="auto"
+              onError={() => setMediaError(true)}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                objectFit: "cover",
+                zIndex: -1,
+                pointerEvents: "none",
+                opacity: revealPhase ? 1 : 0,
+                transition: "opacity 0.8s ease",
+              }}
+            />
+          ) : (
+            <img
+              src={videoSrc || defaultVideoSrc}
+              alt=""
+              onError={() => setMediaError(true)}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                objectFit: "cover",
+                zIndex: -1,
+                pointerEvents: "none",
+                opacity: revealPhase ? 1 : 0,
+                transition: "opacity 0.8s ease",
+              }}
+            />
+          )}
+          {fireworks && (
+            <canvas
+              ref={confettiCanvasRef}
+              style={{
+                position: "fixed",
+                inset: 0,
+                width: "100vw",
+                height: "100vh",
+                zIndex: 5,
+                pointerEvents: "none",
+              }}
+            />
+          )}
+        </>
       )}
 
       <button
