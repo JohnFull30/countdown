@@ -1,19 +1,20 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Countdown",
+  "name": "Gender Reveal Countdown",
   "icons": [
     {
-      "public": "F.png",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "F.png",
+      "type": "image/png",
+      "sizes": "1438x890",
+      "purpose": "any"
     },
     {
-      "public": "F.png",
+      "src": "logo192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "public": "F.png",
+      "src": "logo512.png",
       "type": "image/png",
       "sizes": "512x512"
     },
@@ -56,6 +57,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "theme_color": "#8fbc8f",
+  "background_color": "#8fbc8f"
 }
