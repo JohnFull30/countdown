@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import CountdownSetup from "./CountdownSetup";
 import GenderCountdown from "./GenderCountdown";
-import PremiumUnlock from "./PremiumUnlock";
 import ProtectedRoute from "./ProtectedRoute";
 import PaymentSuccess from "./PaymentSuccess";
 import PaymentCanceled from "./PaymentCanceled";
@@ -70,7 +69,7 @@ export default function App() {
       <StripeReturnGuard />
       <Routes>
         <Route path="/" element={<CountdownSetup />} />
-        <Route path="/premium" element={<PremiumUnlock />} />
+        <Route path="/premium" element={<CountdownSetup />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-canceled" element={<PaymentCanceled />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
