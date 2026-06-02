@@ -10,6 +10,7 @@ import {
   ListItemText,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import STRIPE_CONFIG from "./config/stripeConfig";
 
 export default function PremiumUnlock() {
   const navigate = useNavigate();
@@ -32,11 +33,14 @@ export default function PremiumUnlock() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            apikey: process.env.REACT_APP_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             successUrl,
             cancelUrl, // ← drives the Stripe "Back" link
+            mode: STRIPE_CONFIG.mode,
+            priceId: STRIPE_CONFIG.activePriceId,
           }),
         }
       );

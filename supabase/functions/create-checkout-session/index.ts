@@ -6,7 +6,8 @@ import { stripe } from "../_shared/stripe.ts";
  * POST /functions/v1/create-checkout-session
  * Body (JSON):
  * {
- *   "priceId"?: string,            // optional override (else uses STRIPE_PRICE_ID)
+ *   "mode"?: "test" | "live",      // optional; defaults to test
+ *   "priceId"?: string,            // optional dev fallback
  *   "userId"?: string,             // optional; forwarded to Stripe metadata.user_id
  *   "quantity"?: number,           // optional; defaults to 1
  *   "successUrl"?: string,         // optional; overrides default success
@@ -30,6 +31,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const {
+      mode,
       priceId,
       userId,
       quantity = 1,
@@ -37,18 +39,43 @@ Deno.serve(async (req: Request) => {
       cancelUrl,
     } = await req.json().catch(() => ({}) as any);
 
-    // Fallbacks if not provided by client
     const FRONTEND_BASE =
-      Deno.env.get("FRONTEND_BASE_URL") ?? "http://localhost:3000"; // dev default
+      Deno.env.get("FRONTEND_BASE_URL") ?? "http://localhost:3000";
 
     const defaultSuccess = `${FRONTEND_BASE}/payment-success`;
     const defaultCancel = `${FRONTEND_BASE}/payment-canceled`;
 
-    console.log("we getting the cancelUrl we want????", cancelUrl, defaultCancel);
-    const resolvedPrice =
-      priceId ?? Deno.env.get("STRIPE_PRICE_ID_PREMIUM_399");
+    const selectedMode = mode === "live" ? "live" : "test";
+    const modeSpecificPrice =
+      selectedMode === "live"
+        ? Deno.env.get("STRIPE_LIVE_PRICE_ID_PREMIUM_399")
+        : Deno.env.get("STRIPE_TEST_PRICE_ID_PREMIUM_399");
+    const genericPrice = Deno.env.get("STRIPE_PRICE_ID_PREMIUM_399");
+    const resolvedPrice = modeSpecificPrice ?? genericPrice ?? priceId;
+    const priceSource = modeSpecificPrice
+      ? "mode-specific-secret"
+      : genericPrice
+        ? "generic-secret"
+        : priceId
+          ? "request-body-fallback"
+          : "missing";
+
+    console.log("create-checkout-session selected mode:", selectedMode);
+    console.log("create-checkout-session price source:", priceSource);
+    console.log("create-checkout-session received successUrl:", Boolean(successUrl));
+    console.log("create-checkout-session received cancelUrl:", Boolean(cancelUrl));
+
     if (!resolvedPrice) {
-      throw new Error("Missing STRIPE_PRICE_ID; set secret or pass priceId");
+      return new Response(
+        JSON.stringify({
+          error:
+            "Missing Stripe price ID. Set STRIPE_TEST_PRICE_ID_PREMIUM_399, STRIPE_LIVE_PRICE_ID_PREMIUM_399, STRIPE_PRICE_ID_PREMIUM_399, or pass priceId for development.",
+        }),
+        {
+          headers: { "Content-Type": "application/json", ...corsHeaders },
+          status: 400,
+        }
+      );
     }
 
     const session = await stripe.checkout.sessions.create({

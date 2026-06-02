@@ -20,6 +20,7 @@ import "@egjs/react-flicking/dist/flicking.css";
 import { supabase } from "./supabaseClient";
 import { normalizeRevealMediaUrl } from "./mediaUrl";
 import PortfolioLogoLink from "./components/PortfolioLogoLink";
+import STRIPE_CONFIG from "./config/stripeConfig";
 
 const GENDER_STYLES = {
   boy: {
@@ -197,11 +198,14 @@ export const CountdownSetup = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            apikey: process.env.REACT_APP_SUPABASE_ANON_KEY,
             Authorization: `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             successUrl,
             cancelUrl,
+            mode: STRIPE_CONFIG.mode,
+            priceId: STRIPE_CONFIG.activePriceId,
           }),
         }
       );

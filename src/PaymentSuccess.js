@@ -1,9 +1,19 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("forcePremium", "true");
+      localStorage.removeItem("startedCheckout");
+      sessionStorage.removeItem("startedCheckout");
+    } catch (error) {
+      console.warn("Unable to persist premium unlock:", error);
+    }
+  }, []);
 
   return (
     <Box
@@ -23,7 +33,7 @@ export default function PaymentSuccess() {
       </Typography>
 
       <Typography variant="body1" gutterBottom>
-        Your premium features are now unlocked.
+        Your premium features are now unlocked for this browser.
       </Typography>
 
       <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
