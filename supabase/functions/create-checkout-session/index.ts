@@ -45,7 +45,8 @@ Deno.serve(async (req: Request) => {
     const defaultCancel = `${FRONTEND_BASE}/payment-canceled`;
 
     console.log("we getting the cancelUrl we want????", cancelUrl, defaultCancel);
-    const resolvedPrice = priceId ?? Deno.env.get("STRIPE_PRICE_ID");
+    const resolvedPrice =
+      priceId ?? Deno.env.get("STRIPE_PRICE_ID_PREMIUM_399");
     if (!resolvedPrice) {
       throw new Error("Missing STRIPE_PRICE_ID; set secret or pass priceId");
     }

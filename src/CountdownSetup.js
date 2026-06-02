@@ -46,10 +46,15 @@ const PORTFOLIO_LOGO_LINK_WRAP_SX = {
   top: { xs: 18, sm: 24 },
   left: "50%",
   transform: "translateX(-50%)",
-  "--logo-tile-bg": "rgba(255, 255, 255, 0.54)",
-  "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.68)",
-  "--logo-tile-highlight": "rgba(255, 255, 255, 0.7)",
-  "--logo-tile-shadow": "rgba(15, 23, 42, 0.1)",
+  "--logo-tile-bg": "rgba(255, 255, 255, 0.28)",
+  "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.36)",
+  "--logo-tile-highlight": "rgba(255, 255, 255, 0.5)",
+  "--logo-tile-shadow": "rgba(15, 23, 42, 0.12)",
+  "& .portfolio-logo-link .theme-logo": {
+    width: 52,
+    height: 44,
+    transform: "translateY(1px)",
+  },
 };
 
 const HOW_IT_WORKS = [
@@ -374,7 +379,7 @@ export const CountdownSetup = () => {
           target="_blank"
           rel="noopener noreferrer"
           title="Visit portfolio"
-          logoMode="auto"
+          logoMode="dark"
         />
       </Box>
 

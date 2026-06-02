@@ -3,6 +3,7 @@ function ThemeLogo({ alt = "John Fuller logo", className = "", mode = "auto" }) 
   const classes = [
     "theme-logo",
     className,
+    mode === "dark" ? "theme-logo--dark" : "",
     mode === "light" ? "theme-logo--light" : "",
   ]
     .filter(Boolean)

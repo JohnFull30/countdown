@@ -23,12 +23,22 @@
   opacity: 1;
 }
 
+.theme-logo--dark .theme-logo-image--dark {
+  opacity: 1;
+}
+
+.theme-logo--dark .theme-logo-image--light {
+  opacity: 0;
+}
+
 @media (prefers-color-scheme: dark) {
-  .theme-logo:not(.theme-logo--light) .theme-logo-image--dark {
+  .theme-logo:not(.theme-logo--light):not(.theme-logo--dark)
+    .theme-logo-image--dark {
     opacity: 0;
   }
 
-  .theme-logo:not(.theme-logo--light) .theme-logo-image--light {
+  .theme-logo:not(.theme-logo--light):not(.theme-logo--dark)
+    .theme-logo-image--light {
     opacity: 1;
   }
 }
