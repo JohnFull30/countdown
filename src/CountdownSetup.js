@@ -19,6 +19,7 @@ import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 import { supabase } from "./supabaseClient";
 import { normalizeRevealMediaUrl } from "./mediaUrl";
+import PortfolioLogoLink from "./components/PortfolioLogoLink";
 
 const GENDER_STYLES = {
   boy: {
@@ -39,58 +40,16 @@ const BRAND_GREEN = "#6f9f72";
 const BRAND_GREEN_DARK = "#5f8c62";
 const BRAND_GREEN_SOFT = "rgba(111, 159, 114, 0.18)";
 const PORTFOLIO_URL = "https://johnfull30.github.io/MyPortfolio/";
-const PORTFOLIO_LOGO_DARK_SRC = `${process.env.PUBLIC_URL}/JF-logo-black-cutout.svg`;
-const PORTFOLIO_LOGO_LIGHT_SRC = `${process.env.PUBLIC_URL}/JF-logo-white-cutout.svg`;
 
-const PORTFOLIO_LOGO_BUTTON_SX = {
+const PORTFOLIO_LOGO_LINK_WRAP_SX = {
   position: "absolute",
   top: { xs: 18, sm: 24 },
   left: "50%",
   transform: "translateX(-50%)",
-  width: { xs: 92, sm: 108 },
-  height: { xs: 58, sm: 68 },
-  minWidth: 0,
-  borderRadius: { xs: "18px", sm: "20px" },
-  border: "1px solid rgba(255, 255, 255, 0.64)",
-  bgcolor: "rgba(255, 255, 255, 0.34)",
-  color: "#172018",
-  p: 0,
-  textTransform: "none",
-  overflow: "hidden",
-  boxShadow:
-    "0 18px 42px rgba(32, 56, 34, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.78)",
-  backdropFilter: "blur(18px) saturate(145%)",
-  WebkitBackdropFilter: "blur(18px) saturate(145%)",
-  transition:
-    "transform 180ms ease, box-shadow 180ms ease, background-color 180ms ease, border-color 180ms ease",
-  "&:hover": {
-    transform: "translateX(-50%) translateY(-3px)",
-    bgcolor: "rgba(255, 255, 255, 0.48)",
-    borderColor: "rgba(255, 255, 255, 0.82)",
-    boxShadow:
-      "0 22px 52px rgba(32, 56, 34, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.86)",
-  },
-  "& .portfolio-logo-mark": {
-    position: "relative",
-    display: "block",
-    width: { xs: 52, sm: 61 },
-    height: { xs: 42, sm: 49 },
-  },
-  "& .portfolio-logo-image": {
-    width: "100%",
-    height: "100%",
-    objectFit: "contain",
-    display: "block",
-  },
-  "& .portfolio-logo-image--light": {
-    position: "absolute",
-    inset: 0,
-    opacity: 0,
-  },
-  "&:focus-visible": {
-    outline: "3px solid rgba(255, 255, 255, 0.72)",
-    outlineOffset: 4,
-  },
+  "--logo-tile-bg": "rgba(255, 255, 255, 0.54)",
+  "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.68)",
+  "--logo-tile-highlight": "rgba(255, 255, 255, 0.7)",
+  "--logo-tile-shadow": "rgba(15, 23, 42, 0.1)",
 };
 
 const HOW_IT_WORKS = [
@@ -408,31 +367,16 @@ export const CountdownSetup = () => {
         boxSizing: "border-box",
       }}
     >
-      <Button
-        component="a"
-        href={PORTFOLIO_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Visit John Fuller's portfolio"
-        title="Visit portfolio"
-        sx={PORTFOLIO_LOGO_BUTTON_SX}
-      >
-        <Box component="span" className="portfolio-logo-mark">
-          <Box
-            component="img"
-            src={PORTFOLIO_LOGO_DARK_SRC}
-            alt="John Fuller logo"
-            className="portfolio-logo-image portfolio-logo-image--dark"
-          />
-          <Box
-            component="img"
-            src={PORTFOLIO_LOGO_LIGHT_SRC}
-            alt=""
-            aria-hidden="true"
-            className="portfolio-logo-image portfolio-logo-image--light"
-          />
-        </Box>
-      </Button>
+      <Box sx={PORTFOLIO_LOGO_LINK_WRAP_SX}>
+        <PortfolioLogoLink
+          href={PORTFOLIO_URL}
+          ariaLabel="Visit John Fuller's portfolio"
+          target="_blank"
+          rel="noopener noreferrer"
+          title="Visit portfolio"
+          logoMode="auto"
+        />
+      </Box>
 
       <Box sx={{ width: "100%", maxWidth: 960, mx: "auto" }}>
         <Paper

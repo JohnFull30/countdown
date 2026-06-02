@@ -1,0 +1,69 @@
+.theme-logo {
+  position: relative;
+  display: block;
+}
+
+.theme-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.theme-logo-image--light {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.theme-logo--light .theme-logo-image--dark {
+  opacity: 0;
+}
+
+.theme-logo--light .theme-logo-image--light {
+  opacity: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .theme-logo:not(.theme-logo--light) .theme-logo-image--dark {
+    opacity: 0;
+  }
+
+  .theme-logo:not(.theme-logo--light) .theme-logo-image--light {
+    opacity: 1;
+  }
+}
+
+.portfolio-logo-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 76px;
+  height: 56px;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  background: var(--logo-tile-bg, rgba(255, 255, 255, 0.54));
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow:
+    inset 0 1px 0 var(--logo-tile-highlight, rgba(255, 255, 255, 0.7)),
+    0 16px 42px var(--logo-tile-shadow, rgba(15, 23, 42, 0.1));
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.portfolio-logo-link:hover,
+.portfolio-logo-link:focus-visible {
+  transform: translateY(-2px);
+  background: var(--logo-tile-bg-hover, rgba(255, 255, 255, 0.68));
+  outline: none;
+}
+
+.portfolio-logo-link .theme-logo {
+  width: 34px;
+  height: 34px;
+}
