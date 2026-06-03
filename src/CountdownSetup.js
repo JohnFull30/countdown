@@ -13,10 +13,23 @@ import {
   Stack,
   Divider,
   Chip,
+  Tooltip,
 } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import CelebrationIcon from "@mui/icons-material/Celebration";
+import CloudUploadOutlinedIcon from "@mui/icons-material/CloudUploadOutlined";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import MovieCreationOutlinedIcon from "@mui/icons-material/MovieCreationOutlined";
+import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
+import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
+import RemoveIcon from "@mui/icons-material/Remove";
 import SettingsIcon from "@mui/icons-material/Settings";
-import Flicking from "@egjs/react-flicking";
-import "@egjs/react-flicking/dist/flicking.css";
+import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
+import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
+import WorkspacePremiumOutlinedIcon from "@mui/icons-material/WorkspacePremiumOutlined";
 import { supabase } from "./supabaseClient";
 import { trackEvent } from "./analytics";
 import { resetStripeReturnEventFlags } from "./stripeReturnAnalytics";
@@ -26,32 +39,35 @@ import STRIPE_CONFIG from "./config/stripeConfig";
 
 const GENDER_STYLES = {
   boy: {
-    main: "primary.main",
-    dark: "primary.dark",
+    main: "#2f80ed",
+    dark: "#1f66c2",
+    soft: "rgba(47, 128, 237, 0.1)",
     text: "#fff",
-    hoverBg: "rgba(25,118,210,0.1)",
   },
   girl: {
-    main: "#ff627e",
-    dark: "#e55672",
+    main: "#f43f7d",
+    dark: "#d92f68",
+    soft: "rgba(244, 63, 125, 0.1)",
     text: "#fff",
-    hoverBg: "rgba(255,98,126,0.1)",
   },
 };
 
-const BRAND_GREEN = "#6f9f72";
-const BRAND_GREEN_DARK = "#5f8c62";
-const BRAND_GREEN_SOFT = "rgba(111, 159, 114, 0.18)";
+const BRAND_GREEN = "#3e9a50";
+const BRAND_GREEN_DARK = "#2f7d3e";
+const BRAND_GREEN_SOFT = "rgba(62, 154, 80, 0.13)";
+const CREAM = "#fffaf2";
+const INK = "#141a20";
+const MUTED = "#536052";
 const PORTFOLIO_URL = "https://johnfull30.github.io/MyPortfolio/";
 
 const PORTFOLIO_LOGO_LINK_WRAP_SX = {
   position: "absolute",
-  top: { xs: 18, sm: 24 },
+  top: { xs: 14, sm: 18 },
   left: "50%",
   transform: "translateX(-50%)",
-  "--logo-tile-bg": "rgba(255, 255, 255, 0.28)",
-  "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.36)",
-  "--logo-tile-highlight": "rgba(255, 255, 255, 0.5)",
+  "--logo-tile-bg": "rgba(255, 255, 255, 0.32)",
+  "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.46)",
+  "--logo-tile-highlight": "rgba(255, 255, 255, 0.58)",
   "--logo-tile-shadow": "rgba(15, 23, 42, 0.12)",
   "& .portfolio-logo-link .theme-logo": {
     width: 52,
@@ -63,29 +79,57 @@ const PORTFOLIO_LOGO_LINK_WRAP_SX = {
 const HOW_IT_WORKS = [
   {
     number: "1",
-    title: "1. Choose the reveal",
+    title: "Choose the reveal",
     body: "Pick boy or girl and set your countdown length.",
+    Icon: TimerOutlinedIcon,
   },
   {
     number: "2",
-    title: "2. Start the moment",
+    title: "Start the moment",
     body: "Display the countdown on your phone, tablet, or screen.",
+    Icon: PhoneIphoneIcon,
   },
   {
     number: "3",
-    title: "3. Reveal with style",
+    title: "Reveal with style",
     body: "Add fireworks or a custom reveal video with premium.",
+    Icon: CelebrationIcon,
   },
 ];
 
 const PREMIUM_FEATURES = [
-  "Custom reveal video or GIF link",
-  "Fireworks for a bigger reveal moment",
-  "Future themes and personal messages",
-  "One-time unlock for this countdown experience",
+  {
+    label: "Upload your own reveal video or GIF",
+    Icon: MovieCreationOutlinedIcon,
+    bg: "rgba(244, 63, 125, 0.13)",
+    color: "#e3316e",
+  },
+  {
+    label: "Add fireworks & celebration effects",
+    Icon: AutoAwesomeIcon,
+    bg: "rgba(47, 128, 237, 0.13)",
+    color: "#246de0",
+  },
+  {
+    label: "Unlock future reveal themes",
+    Icon: PaletteOutlinedIcon,
+    bg: "rgba(130, 83, 225, 0.13)",
+    color: "#7a4bd8",
+  },
+  {
+    label: "Add personal messages (coming soon)",
+    Icon: FavoriteBorderIcon,
+    bg: "rgba(217, 126, 28, 0.14)",
+    color: "#ce7414",
+  },
+  {
+    label: "One-time unlock. No subscriptions.",
+    Icon: ShieldOutlinedIcon,
+    bg: "rgba(62, 154, 80, 0.14)",
+    color: BRAND_GREEN,
+  },
 ];
 
-const generateDurations = () => Array.from({ length: 30 }, (_, i) => i + 1);
 const devMode = true;
 
 function makeShortId(len = 6) {
@@ -115,20 +159,17 @@ export const CountdownSetup = () => {
 
   const [devOpen, setDevOpen] = useState(false);
   const [premiumNotice, setPremiumNotice] = useState("");
-  const flickRef = useRef(null);
   const premiumRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const isPremiumUser = localStorage.getItem("forcePremium") === "true";
   const freeTryMessage =
-    freeTries > 0
-      ? `You have ${freeTries} free premium reveal ${
-          freeTries === 1 ? "try" : "tries"
-        } left.`
-      : "Premium is required to use custom reveal effects.";
+    freeTries === 1
+      ? "You have 1 free premium reveal left before unlocking is required."
+      : `You have ${freeTries} free premium reveals left before unlocking is required.`;
   const premiumButtonLabel = isPremiumUser
-    ? "Premium unlocked"
+    ? "Premium Unlocked"
     : "Unlock Premium - $3.99";
 
   const focusPremiumCard = (message) => {
@@ -136,35 +177,18 @@ export const CountdownSetup = () => {
     premiumRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
-  // Dev: Reset back to Basic (remove simulated premium, restore defaults, clear Stripe flags)
   const resetToBasic = () => {
     try {
-      // Premium state off
       localStorage.removeItem("forcePremium");
-      // Free tries back to default (3)
       localStorage.setItem("freeTries", "3");
-      // Selection defaults
       setDuration(1);
       setGender("boy");
-      // Stripe flow flags
       sessionStorage.removeItem("startedCheckout");
       localStorage.removeItem("startedCheckout");
     } finally {
-      // Hard reload to guarantee a pristine state
       window.location.reload();
     }
   };
-
-  useEffect(() => {
-    const flicking = flickRef.current;
-    if (flicking) {
-      flicking.moveTo(duration + 8, 600).then(() => {
-        setTimeout(() => {
-          flicking.moveTo(duration - 1, 600);
-        }, 700);
-      });
-    }
-  }, []);
 
   useEffect(() => {
     localStorage.setItem("fireworksEnabled", fireworksEnabled.toString());
@@ -330,9 +354,29 @@ export const CountdownSetup = () => {
     }
   };
 
+  const adjustDuration = (amount) => {
+    setDuration((current) => Math.min(30, Math.max(1, current + amount)));
+  };
+
+  const handleCustomRevealUnlock = async () => {
+    await trackEvent("premium_clicked", {
+      source: "custom_reveal_unlock_button",
+      duration,
+      gender,
+      fireworks_enabled: fireworksEnabled,
+      has_custom_gif: Boolean(customGif),
+      is_premium_user: isPremiumUser,
+      free_tries_remaining: freeTries,
+      secret_mode: secretMode,
+    });
+    focusPremiumCard("Unlock premium to use your own reveal video or GIF.");
+  };
+
   const renderGenderButton = (key) => {
     const isSelected = gender === key;
-    const { main, dark, text, hoverBg } = GENDER_STYLES[key];
+    const { main, dark, soft, text } = GENDER_STYLES[key];
+    const label = key.toUpperCase();
+    const emoji = key === "boy" ? "👣" : "🎀";
 
     if (secretMode) {
       return (
@@ -340,18 +384,21 @@ export const CountdownSetup = () => {
           key={key}
           variant="outlined"
           onClick={() => setGender(key)}
-          size="medium"
+          size="large"
           sx={{
-            width: 100,
-            borderColor: "grey.600",
-            borderWidth: "2px",
-            borderStyle: "solid",
-            color: "black",
-            fontWeight: 800,
-            "&:hover": { bgcolor: "rgba(0,0,0,0.06)" },
+            flex: 1,
+            minHeight: 54,
+            borderRadius: 2.5,
+            borderColor: "rgba(20, 26, 32, 0.24)",
+            borderWidth: 1,
+            color: INK,
+            bgcolor: "#fff",
+            fontWeight: 900,
+            textTransform: "none",
+            "&:hover": { borderColor: INK, bgcolor: "rgba(20,26,32,0.04)" },
           }}
         >
-          {key.toUpperCase()}
+          {emoji} {label}
         </Button>
       );
     }
@@ -361,27 +408,26 @@ export const CountdownSetup = () => {
         key={key}
         variant={isSelected ? "contained" : "outlined"}
         onClick={() => setGender(key)}
-        size="medium"
+        size="large"
         sx={{
-          width: 100,
-          fontWeight: 800,
-          ...(isSelected
-            ? {
-                bgcolor: main,
-                color: text,
-                "&:hover": { bgcolor: dark },
-              }
-            : {
-                borderColor: main,
-                borderWidth: "2px",
-                borderStyle: "solid",
-                color: main,
-                bgcolor: "#fff",
-                "&:hover": { bgcolor: hoverBg },
-              }),
+          flex: 1,
+          minHeight: 54,
+          borderRadius: 2.5,
+          borderWidth: 1.5,
+          borderColor: main,
+          color: isSelected ? text : main,
+          bgcolor: isSelected ? main : soft,
+          fontWeight: 900,
+          textTransform: "none",
+          fontSize: "1rem",
+          boxShadow: isSelected ? `0 12px 22px ${soft}` : "none",
+          "&:hover": {
+            borderColor: dark,
+            bgcolor: isSelected ? dark : soft,
+          },
         }}
       >
-        {key.toUpperCase()}
+        {emoji} {label}
       </Button>
     );
   };
@@ -390,17 +436,16 @@ export const CountdownSetup = () => {
     <Box
       sx={{
         minHeight: "100vh",
-        bgcolor: "darkseagreen",
         background:
-          "linear-gradient(145deg, #91bd91 0%, #b8d3aa 48%, #f7f1e8 100%)",
+          "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.54), transparent 24%), linear-gradient(135deg, #94bf8a 0%, #c9dfbd 48%, #fff5df 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         position: "relative",
-        px: { xs: 2, sm: 3, md: 4 },
-        pt: { xs: 12, sm: 14 },
-        pb: { xs: 5, sm: 7, md: 9 },
+        px: { xs: 1.5, sm: 3, md: 4 },
+        pt: { xs: 10.5, sm: 12 },
+        pb: { xs: 3, sm: 5 },
         boxSizing: "border-box",
       }}
     >
@@ -415,33 +460,46 @@ export const CountdownSetup = () => {
         />
       </Box>
 
-      <Box sx={{ width: "100%", maxWidth: 960, mx: "auto" }}>
-        <Paper
-          elevation={0}
+      <Paper
+        elevation={0}
+        sx={{
+          width: "100%",
+          maxWidth: 1180,
+          mx: "auto",
+          borderRadius: { xs: 4, md: 5 },
+          overflow: "hidden",
+          bgcolor: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(22px)",
+          border: "1px solid rgba(255,255,255,0.76)",
+          boxShadow: "0 28px 76px rgba(42, 65, 36, 0.24)",
+        }}
+      >
+        <Box
           sx={{
-            borderRadius: { xs: 4, sm: 5 },
-            overflow: "visible",
-            bgcolor: "rgba(255,255,255,0.94)",
-            boxShadow: "0 28px 70px rgba(40, 58, 38, 0.24)",
-            border: "1px solid rgba(255,255,255,0.62)",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr", lg: "1.25fr 0.9fr" },
+            gap: { xs: 3, lg: 4.5 },
+            p: { xs: 2.25, sm: 4, md: 5 },
           }}
         >
-          <Stack spacing={{ xs: 3, sm: 4 }} sx={{ p: { xs: 2.5, sm: 4.5 } }}>
-            <Box>
+          <Stack spacing={{ xs: 3, md: 3.5 }}>
+            <Box sx={{ textAlign: { xs: "center", lg: "left" } }}>
               <Chip
-                label="No setup stress. Just tap, count down, and reveal."
+                label="🎉 No setup stress. Just tap, count down, and reveal."
                 sx={{
-                  mb: 2,
-                  bgcolor: BRAND_GREEN,
-                  color: "#fff",
-                  fontWeight: 800,
+                  mb: 2.25,
                   maxWidth: "100%",
                   height: "auto",
-                  py: 0.75,
-                  boxShadow: "0 10px 22px rgba(47, 111, 70, 0.22)",
+                  py: 0.55,
+                  px: 0.5,
+                  bgcolor: BRAND_GREEN_SOFT,
+                  color: "#104d20",
+                  border: "1px solid rgba(62,154,80,0.13)",
+                  fontWeight: 900,
                   "& .MuiChip-label": {
                     whiteSpace: "normal",
                     lineHeight: 1.35,
+                    px: 1.25,
                   },
                 }}
               />
@@ -449,11 +507,11 @@ export const CountdownSetup = () => {
                 variant="h3"
                 component="h1"
                 sx={{
-                  color: "#162116",
-                  fontWeight: 800,
+                  color: INK,
+                  fontWeight: 950,
                   letterSpacing: 0,
-                  fontSize: { xs: "2rem", sm: "3rem" },
-                  lineHeight: 1.06,
+                  fontSize: { xs: "2.15rem", sm: "3rem", md: "3.35rem" },
+                  lineHeight: 1.02,
                   mb: 1.5,
                 }}
               >
@@ -462,10 +520,11 @@ export const CountdownSetup = () => {
               <Typography
                 variant="body1"
                 sx={{
-                  color: "#3d493c",
-                  fontSize: { xs: "1rem", sm: "1.15rem" },
-                  lineHeight: 1.65,
-                  maxWidth: 620,
+                  color: "#2e3942",
+                  fontSize: { xs: "1rem", sm: "1.12rem" },
+                  lineHeight: 1.6,
+                  maxWidth: 690,
+                  mx: { xs: "auto", lg: 0 },
                 }}
               >
                 Pick the timer, choose the reveal, and let the big moment play
@@ -473,177 +532,197 @@ export const CountdownSetup = () => {
               </Typography>
             </Box>
 
-            <Stack
-              direction={{ xs: "column", md: "row" }}
-              spacing={1.5}
+            <Box
               aria-label="How it works"
+              sx={{
+                display: "grid",
+                gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
+                gap: { xs: 1.75, md: 2 },
+              }}
             >
-              {HOW_IT_WORKS.map((step) => (
-                <Paper
-                  key={step.title}
-                  elevation={0}
+              {HOW_IT_WORKS.map(({ number, title, body, Icon }) => (
+                <Box
+                  key={title}
                   sx={{
-                    flex: 1,
-                    p: 2,
-                    borderRadius: 3,
-                    bgcolor:
-                      "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(250,247,240,0.96))",
-                    border: `1px solid ${BRAND_GREEN_SOFT}`,
-                    boxShadow: "0 10px 24px rgba(40, 58, 38, 0.08)",
+                    position: "relative",
+                    textAlign: { xs: "left", md: "center" },
+                    display: "grid",
+                    gridTemplateColumns: { xs: "auto 1fr", md: "1fr" },
+                    gap: { xs: 1.5, md: 1 },
+                    alignItems: "center",
                   }}
                 >
-                  <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1 }}>
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: { xs: 76, sm: 86, md: 94 },
+                      height: { xs: 76, sm: 86, md: 94 },
+                      mx: { xs: 0, md: "auto" },
+                      borderRadius: "50%",
+                      bgcolor: BRAND_GREEN_SOFT,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
                     <Box
                       sx={{
-                        width: 28,
-                        height: 28,
+                        position: "absolute",
+                        top: 2,
+                        left: 0,
+                        width: 30,
+                        height: 30,
                         borderRadius: "50%",
+                        bgcolor: BRAND_GREEN,
+                        color: "#fff",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        bgcolor: BRAND_GREEN,
-                        color: "#fff",
-                        fontWeight: 900,
-                        fontSize: "0.85rem",
-                        boxShadow: "0 8px 16px rgba(47, 111, 70, 0.2)",
+                        fontSize: "0.9rem",
+                        fontWeight: 950,
+                        boxShadow: "0 9px 18px rgba(47, 111, 70, 0.24)",
                       }}
                     >
-                      {step.number}
+                      {number}
                     </Box>
+                    <Icon sx={{ fontSize: { xs: 38, md: 42 }, color: "#102f17" }} />
+                  </Box>
+                  <Box>
                     <Typography
-                      variant="subtitle2"
-                      sx={{ color: "#162116", fontWeight: 800 }}
+                      variant="subtitle1"
+                      sx={{ color: INK, fontWeight: 900, mb: 0.35 }}
                     >
-                      {step.title.replace(`${step.number}. `, "")}
+                      {title}
                     </Typography>
-                  </Stack>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#536052", lineHeight: 1.55 }}
-                  >
-                    {step.body}
-                  </Typography>
-                </Paper>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: MUTED,
+                        lineHeight: 1.45,
+                        maxWidth: { xs: "none", md: 190 },
+                        mx: { xs: 0, md: "auto" },
+                      }}
+                    >
+                      {body}
+                    </Typography>
+                  </Box>
+                </Box>
               ))}
-            </Stack>
+            </Box>
 
-            <Divider sx={{ borderColor: "rgba(34, 73, 44, 0.12)" }} />
+            <Divider sx={{ borderColor: "rgba(20, 26, 32, 0.1)" }} />
 
-            <Stack
-              component="section"
-              aria-labelledby="setup-controls-title"
-              direction={{ xs: "column", md: "row" }}
-              spacing={2}
-              alignItems="stretch"
-            >
-              <Paper
-                elevation={0}
+            <Box component="section" aria-labelledby="setup-controls-title">
+              <Typography
+                id="setup-controls-title"
+                variant="h5"
                 sx={{
-                  flex: "1 1 58%",
-                  p: { xs: 2, sm: 3 },
-                  borderRadius: 4,
-                  bgcolor: "#fbfaf7",
-                  border: "1px solid rgba(34, 73, 44, 0.12)",
-                  boxShadow: "0 14px 34px rgba(40, 58, 38, 0.09)",
+                  color: INK,
+                  fontWeight: 950,
+                  letterSpacing: 0,
+                  mb: 0.75,
                 }}
               >
-                <Typography
-                  id="setup-controls-title"
-                  variant="h5"
-                  sx={{ color: "#162116", fontWeight: 800, mb: 0.75 }}
+                🎉 Set up your reveal
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{ color: MUTED, lineHeight: 1.55, mb: 2.75 }}
+              >
+                Choose the countdown length, reveal result, and effects before
+                you start.
+              </Typography>
+
+              <Stack spacing={2.25}>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "0.92fr 1.2fr" },
+                    gap: { xs: 2, sm: 3 },
+                    alignItems: "end",
+                  }}
                 >
-                  Set up your reveal
-                </Typography>
-                <Typography variant="body2" sx={{ color: "#536052", mb: 3 }}>
-                  Choose the countdown length, reveal result, and effects before
-                  you start.
-                </Typography>
-
-                <Stack spacing={2.5}>
-                  <Stack
-                    direction={{ xs: "column", sm: "row" }}
-                    spacing={2.5}
-                    alignItems={{ xs: "stretch", sm: "center" }}
-                    justifyContent="space-between"
-                  >
-                    <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ color: "#263226", fontWeight: 800, mb: 1 }}
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ color: INK, fontWeight: 900, mb: 1 }}
+                    >
+                      Duration in seconds
+                    </Typography>
+                    <Box
+                      sx={{
+                        height: 56,
+                        borderRadius: 2,
+                        overflow: "hidden",
+                        bgcolor: "#fff",
+                        border: "1px solid rgba(20, 26, 32, 0.1)",
+                        boxShadow: "0 7px 18px rgba(20, 26, 32, 0.07)",
+                        display: "grid",
+                        gridTemplateColumns: "56px 1fr 56px",
+                        alignItems: "stretch",
+                        maxWidth: { xs: "100%", sm: 230 },
+                      }}
+                    >
+                      <IconButton
+                        aria-label="Decrease duration"
+                        onClick={() => adjustDuration(-1)}
+                        disabled={duration <= 1}
+                        sx={{ borderRadius: 0, borderRight: "1px solid rgba(20,26,32,0.08)" }}
                       >
-                        Duration in seconds
-                      </Typography>
-
+                        <RemoveIcon />
+                      </IconButton>
                       <Box
                         sx={{
-                          width: 88,
-                          height: 48,
-                          mx: { xs: "auto", sm: 0 },
-                          border: "1px solid",
-                          borderColor: "rgba(38, 50, 38, 0.22)",
-                          borderRadius: 2,
-                          overflow: "hidden",
-                          bgcolor: "#fff",
-                          boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.65)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: INK,
+                          fontSize: "1.55rem",
+                          fontWeight: 950,
                         }}
                       >
-                        <Flicking
-                          ref={flickRef}
-                          horizontal={false}
-                          align="center"
-                          defaultIndex={duration - 1}
-                          bounce={20}
-                          deceleration={0.0075}
-                          onChanged={(e) =>
-                            setDuration(parseInt(e.panel.element.innerText))
-                          }
-                          style={{ height: "100%", width: "100%" }}
-                        >
-                          {generateDurations().map((sec) => (
-                            <div
-                              key={sec}
-                              style={{
-                                height: 48,
-                                width: "100%",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                                fontSize: "1.25rem",
-                                fontWeight: 700,
-                                color: "#162116",
-                                userSelect: "none",
-                              }}
-                            >
-                              {sec}
-                            </div>
-                          ))}
-                        </Flicking>
+                        {duration}
                       </Box>
-                    </Box>
-
-                    <Box sx={{ textAlign: { xs: "center", sm: "left" } }}>
-                      <Typography
-                        variant="subtitle2"
-                        sx={{ color: "#263226", fontWeight: 800, mb: 1 }}
+                      <IconButton
+                        aria-label="Increase duration"
+                        onClick={() => adjustDuration(1)}
+                        disabled={duration >= 30}
+                        sx={{ borderRadius: 0, borderLeft: "1px solid rgba(20,26,32,0.08)" }}
                       >
-                        Reveal result
-                      </Typography>
-                      <Box sx={{ display: "flex", justifyContent: { xs: "center", sm: "flex-start" }, gap: 1.5 }}>
-                        {["boy", "girl"].map(renderGenderButton)}
-                      </Box>
+                        <AddIcon />
+                      </IconButton>
                     </Box>
-                  </Stack>
+                  </Box>
 
-                  <Box
+                  <Box>
+                    <Typography
+                      variant="subtitle2"
+                      sx={{ color: INK, fontWeight: 900, mb: 1 }}
+                    >
+                      Reveal result
+                    </Typography>
+                    <Stack direction="row" spacing={1.5}>
+                      {["boy", "girl"].map(renderGenderButton)}
+                    </Stack>
+                  </Box>
+                </Box>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1.1fr" },
+                    gap: 1.5,
+                  }}
+                >
+                  <Paper
+                    elevation={0}
                     sx={{
-                      display: "flex",
-                      flexDirection: { xs: "column", sm: "row" },
-                      alignItems: { xs: "flex-start", sm: "center" },
-                      gap: { xs: 0.5, sm: 3 },
-                      p: 1.5,
+                      px: 1.4,
+                      py: 0.8,
+                      borderRadius: 2,
                       bgcolor: "#fff",
-                      border: "1px solid rgba(34, 73, 44, 0.1)",
-                      borderRadius: 3,
+                      border: "1px solid rgba(20, 26, 32, 0.09)",
+                      boxShadow: "0 7px 18px rgba(20, 26, 32, 0.05)",
                     }}
                   >
                     <FormControlLabel
@@ -651,248 +730,390 @@ export const CountdownSetup = () => {
                         <Switch
                           checked={fireworksEnabled}
                           onChange={() => setFireworksEnabled(!fireworksEnabled)}
-                          color="primary"
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": {
+                              color: BRAND_GREEN,
+                            },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                              bgcolor: BRAND_GREEN,
+                            },
+                          }}
                         />
                       }
-                      label="Fireworks"
-                      sx={{ color: "#263226", m: 0 }}
-                    />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={secretMode}
-                          onChange={() => setSecretMode(!secretMode)}
-                          color="primary"
-                        />
+                      label={
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <AutoAwesomeIcon sx={{ color: "#6b4ee6", fontSize: 22 }} />
+                          <Typography sx={{ color: INK, fontWeight: 850 }}>
+                            Fireworks
+                          </Typography>
+                        </Stack>
                       }
-                      label="Secret Mode"
-                      sx={{ color: "#263226", m: 0 }}
+                      sx={{ m: 0, width: "100%", justifyContent: "flex-start" }}
                     />
-                  </Box>
+                  </Paper>
 
-                  <Box sx={{ position: "relative", width: "100%" }}>
-                    <TextField
-                      label="Custom reveal video or GIF link"
-                      value={customGif}
-                      onChange={(e) => setCustomGif(e.target.value)}
-                      helperText={
-                        isPremiumUser
-                          ? "Paste a GIF, video, or supported media link for your reveal."
-                          : "Premium lets you reveal with your own video or GIF."
-                      }
-                      variant="outlined"
-                      fullWidth
-                      sx={{
-                        borderRadius: 2,
-                        "& fieldset": { borderRadius: 2 },
-                        "& .MuiFormHelperText-root": {
-                          color: "#536052",
-                          mx: 0,
-                        },
-                        filter: isPremiumUser
-                          ? "none"
-                          : "blur(0.5px) contrast(92%) brightness(1.04)",
-                        transition: "filter 0.3s ease",
-                      }}
-                    />
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      px: 1.4,
+                      py: 0.8,
+                      borderRadius: 2,
+                      bgcolor: "#fff",
+                      border: "1px solid rgba(20, 26, 32, 0.09)",
+                      boxShadow: "0 7px 18px rgba(20, 26, 32, 0.05)",
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" justifyContent="space-between">
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={secretMode}
+                            onChange={() => setSecretMode(!secretMode)}
+                            sx={{
+                              "& .MuiSwitch-switchBase.Mui-checked": {
+                                color: BRAND_GREEN,
+                              },
+                              "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": {
+                                bgcolor: BRAND_GREEN,
+                              },
+                            }}
+                          />
+                        }
+                        label={
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <LockOutlinedIcon sx={{ color: "#4f5964", fontSize: 20 }} />
+                            <Typography sx={{ color: INK, fontWeight: 850 }}>
+                              Secret Mode
+                            </Typography>
+                          </Stack>
+                        }
+                        sx={{ m: 0 }}
+                      />
+                      <Tooltip title="Keeps the reveal result hidden in the countdown URL when available.">
+                        <HelpOutlineIcon sx={{ color: "#687382", fontSize: 21 }} />
+                      </Tooltip>
+                    </Stack>
+                  </Paper>
+                </Box>
+
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: { xs: 1.35, sm: 1.6 },
+                    borderRadius: 2.5,
+                    bgcolor: isPremiumUser ? "#fff" : "rgba(255,255,255,0.72)",
+                    border: "1px solid rgba(62, 154, 80, 0.18)",
+                    boxShadow: "0 8px 20px rgba(20, 26, 32, 0.06)",
+                  }}
+                >
+                  <Stack
+                    direction={{ xs: "column", sm: "row" }}
+                    spacing={1.5}
+                    alignItems={{ xs: "stretch", sm: "center" }}
+                  >
+                    <Stack
+                      direction="row"
+                      spacing={1.4}
+                      alignItems="center"
+                      sx={{ flex: 1, minWidth: 0 }}
+                    >
+                      <CloudUploadOutlinedIcon
+                        sx={{ color: INK, fontSize: 34, flexShrink: 0 }}
+                      />
+                      <TextField
+                        label="Custom reveal video or GIF link"
+                        value={customGif}
+                        onChange={(e) => setCustomGif(e.target.value)}
+                        disabled={!isPremiumUser}
+                        helperText={
+                          isPremiumUser
+                            ? "Paste a GIF, video, or supported media link."
+                            : "Premium lets you upload your own video or GIF."
+                        }
+                        variant="standard"
+                        fullWidth
+                        InputProps={{
+                          disableUnderline: !isPremiumUser,
+                        }}
+                        sx={{
+                          "& .MuiInputLabel-root": {
+                            color: INK,
+                            fontWeight: 900,
+                          },
+                          "& .MuiInputBase-input.Mui-disabled": {
+                            WebkitTextFillColor: "#7a838c",
+                          },
+                          "& .MuiFormHelperText-root": {
+                            color: MUTED,
+                            mx: 0,
+                          },
+                        }}
+                      />
+                    </Stack>
                     {!isPremiumUser && (
                       <Button
                         variant="outlined"
-                        size="small"
+                        size="medium"
+                        startIcon={<LockOutlinedIcon />}
                         sx={{
-                          position: "absolute",
-                          top: 14,
-                          right: 8,
-                          bgcolor: "rgba(255,255,255,0.92)",
-                          borderColor: "rgba(34, 73, 44, 0.24)",
-                          color: BRAND_GREEN,
-                          fontWeight: 800,
+                          alignSelf: { xs: "stretch", sm: "center" },
+                          minWidth: 122,
+                          borderRadius: 2,
+                          borderColor: "rgba(62, 154, 80, 0.32)",
+                          bgcolor: "#fff",
+                          color: "#247135",
+                          fontWeight: 900,
+                          textTransform: "uppercase",
                           "&:hover": {
                             borderColor: BRAND_GREEN,
-                            bgcolor: "#fff",
+                            bgcolor: BRAND_GREEN_SOFT,
                           },
                         }}
-                        onClick={async () => {
-                          await trackEvent("premium_clicked", {
-                            source: "custom_reveal_unlock_button",
-                            duration,
-                            gender,
-                            fireworks_enabled: fireworksEnabled,
-                            has_custom_gif: Boolean(customGif),
-                            is_premium_user: isPremiumUser,
-                            free_tries_remaining: freeTries,
-                            secret_mode: secretMode,
-                          });
-                          focusPremiumCard(
-                            "Unlock premium to use your own reveal video or GIF."
-                          );
-                        }}
+                        onClick={handleCustomRevealUnlock}
                       >
                         Unlock
                       </Button>
                     )}
-                  </Box>
-
-                  <Button
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    sx={{
-                      py: 1.45,
-                      borderRadius: 3,
-                      bgcolor: BRAND_GREEN,
-                      fontWeight: 800,
-                      textTransform: "none",
-                      fontSize: "1rem",
-                      boxShadow: "0 12px 24px rgba(47, 111, 70, 0.28)",
-                      "&:hover": { bgcolor: BRAND_GREEN_DARK },
-                    }}
-                    onClick={handleSubmit}
-                  >
-                    Start Countdown
-                  </Button>
-                </Stack>
-              </Paper>
-
-              <Paper
-                ref={premiumRef}
-                elevation={0}
-                sx={{
-                  flex: "1 1 42%",
-                  p: { xs: 2, sm: 3 },
-                  borderRadius: 4,
-                  bgcolor: "#fff7ef",
-                  border: "1px solid rgba(179, 100, 43, 0.2)",
-                  boxShadow: "0 14px 34px rgba(120, 72, 32, 0.1)",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "space-between",
-                  gap: 3,
-                }}
-              >
-                <Box>
-                  <Chip
-                    label={isPremiumUser ? "Premium active" : "Premium"}
-                    sx={{
-                      mb: 2,
-                      bgcolor: "rgba(179, 100, 43, 0.12)",
-                      color: "#8a4b1f",
-                      fontWeight: 800,
-                    }}
-                  />
-                  <Typography
-                    variant="h5"
-                    sx={{ color: "#2a2118", fontWeight: 800, mb: 1 }}
-                  >
-                    Premium reveal options
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#625448", lineHeight: 1.7, mb: 2 }}
-                  >
-                    Make the reveal feel less like a timer and more like an
-                    event. Premium keeps the countdown simple while adding the
-                    pieces that make the final moment feel personal.
-                  </Typography>
-                  <Stack spacing={1.1} sx={{ mb: 2 }}>
-                    {PREMIUM_FEATURES.map((feature) => (
-                      <Stack
-                        key={feature}
-                        direction="row"
-                        spacing={1}
-                        alignItems="flex-start"
-                      >
-                        <Box
-                          sx={{
-                            width: 18,
-                            height: 18,
-                            mt: "2px",
-                            borderRadius: "50%",
-                            bgcolor: "rgba(179, 100, 43, 0.14)",
-                            color: "#8a4b1f",
-                            fontSize: "0.75rem",
-                            fontWeight: 900,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          ✓
-                        </Box>
-                        <Typography
-                          variant="body2"
-                          sx={{ color: "#4d4035", lineHeight: 1.45 }}
-                        >
-                          {feature}
-                        </Typography>
-                      </Stack>
-                    ))}
                   </Stack>
-                  <Typography
-                    variant="body2"
-                    sx={{ color: "#3b2f24", fontWeight: 800, mb: 1 }}
+                </Paper>
+
+                <Button
+                  variant="contained"
+                  size="large"
+                  fullWidth
+                  sx={{
+                    py: 1.75,
+                    borderRadius: 2.4,
+                    bgcolor: BRAND_GREEN,
+                    fontWeight: 950,
+                    textTransform: "none",
+                    fontSize: { xs: "1.08rem", sm: "1.2rem" },
+                    boxShadow: "0 15px 26px rgba(47, 111, 70, 0.28)",
+                    "&:hover": { bgcolor: BRAND_GREEN_DARK },
+                  }}
+                  onClick={handleSubmit}
+                >
+                  🚀 Start Countdown
+                </Button>
+              </Stack>
+            </Box>
+          </Stack>
+
+          <Paper
+            ref={premiumRef}
+            elevation={0}
+            sx={{
+              p: { xs: 2.5, sm: 3.4 },
+              borderRadius: 4,
+              bgcolor:
+                "linear-gradient(160deg, rgba(255,250,242,0.98) 0%, rgba(255,246,236,0.96) 100%)",
+              border: "1px solid rgba(211, 151, 89, 0.28)",
+              boxShadow: "0 20px 46px rgba(120, 72, 32, 0.12)",
+              display: "flex",
+              flexDirection: "column",
+              alignSelf: "stretch",
+            }}
+          >
+            <Stack spacing={2.6} sx={{ height: "100%" }}>
+              <Stack alignItems="center" textAlign="center" spacing={1.45}>
+                <Box
+                  sx={{
+                    width: 58,
+                    height: 58,
+                    borderRadius: "50%",
+                    bgcolor: "rgba(255, 217, 146, 0.38)",
+                    border: "1px solid rgba(179, 100, 43, 0.18)",
+                    color: "#9a501a",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 12px 30px rgba(154, 80, 26, 0.14)",
+                  }}
+                >
+                  <WorkspacePremiumOutlinedIcon sx={{ fontSize: 34 }} />
+                </Box>
+                <Chip
+                  label="👑 Premium Reveal"
+                  sx={{
+                    bgcolor: "rgba(244, 63, 125, 0.12)",
+                    color: "#e31f5d",
+                    fontWeight: 950,
+                    letterSpacing: 0.2,
+                  }}
+                />
+                <Typography
+                  variant="h4"
+                  sx={{
+                    color: INK,
+                    fontWeight: 950,
+                    lineHeight: 1.08,
+                    letterSpacing: 0,
+                    fontSize: { xs: "1.9rem", sm: "2.2rem" },
+                  }}
+                >
+                  Make the big reveal unforgettable.
+                </Typography>
+                <Typography
+                  variant="body1"
+                  sx={{
+                    color: "#45515d",
+                    lineHeight: 1.6,
+                    maxWidth: 390,
+                  }}
+                >
+                  Turn a simple timer into a special family moment with custom
+                  videos, fireworks, and more.
+                </Typography>
+              </Stack>
+
+              <Stack spacing={1.35}>
+                {PREMIUM_FEATURES.map(({ label, Icon, bg, color }) => (
+                  <Stack
+                    key={label}
+                    direction="row"
+                    spacing={1.45}
+                    alignItems="center"
+                    sx={{
+                      pb: 1.35,
+                      borderBottom: "1px solid rgba(120, 72, 32, 0.11)",
+                      "&:last-of-type": {
+                        borderBottom: "none",
+                        pb: 0,
+                      },
+                    }}
                   >
-                    {freeTryMessage}
-                  </Typography>
-                  {premiumNotice && (
-                    <Typography
-                      variant="body2"
+                    <Box
                       sx={{
-                        color: "#8a4b1f",
-                        fontWeight: 800,
-                        bgcolor: "rgba(179, 100, 43, 0.1)",
-                        borderRadius: 2,
-                        px: 1.25,
-                        py: 1,
+                        width: 44,
+                        height: 44,
+                        borderRadius: "50%",
+                        bgcolor: bg,
+                        color,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
                       }}
                     >
-                      {premiumNotice}
+                      <Icon sx={{ fontSize: 24 }} />
+                    </Box>
+                    <Typography sx={{ color: INK, fontSize: "1rem", lineHeight: 1.35 }}>
+                      {label}
                     </Typography>
-                  )}
-                </Box>
+                  </Stack>
+                ))}
+              </Stack>
+
+              <Box sx={{ flex: 1 }} />
+
+              <Stack spacing={1.8}>
+                <Paper
+                  elevation={0}
+                  sx={{
+                    p: 1.8,
+                    borderRadius: 2,
+                    bgcolor: "rgba(255, 236, 239, 0.88)",
+                    border: "1px solid rgba(244, 63, 125, 0.22)",
+                  }}
+                >
+                  <Stack direction="row" spacing={1.3} alignItems="center">
+                    <Box
+                      sx={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "50%",
+                        color: "#e31f5d",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                      }}
+                    >
+                      🎁
+                    </Box>
+                    <Typography sx={{ color: INK, lineHeight: 1.35 }}>
+                      {freeTryMessage}
+                    </Typography>
+                  </Stack>
+                </Paper>
+
+                {premiumNotice && (
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: "#8a4b1f",
+                      fontWeight: 850,
+                      bgcolor: "rgba(179, 100, 43, 0.1)",
+                      borderRadius: 2,
+                      px: 1.4,
+                      py: 1.1,
+                    }}
+                  >
+                    {premiumNotice}
+                  </Typography>
+                )}
+
                 <Button
                   variant={isPremiumUser ? "outlined" : "contained"}
                   fullWidth
                   disabled={isPremiumUser}
+                  startIcon={<LockOutlinedIcon />}
                   onClick={handleUnlock}
                   sx={{
+                    py: 1.55,
+                    borderRadius: 2.2,
                     borderColor: isPremiumUser
                       ? "rgba(138, 75, 31, 0.28)"
                       : "transparent",
                     color: isPremiumUser ? "#8a4b1f" : "#fff",
                     bgcolor: isPremiumUser
                       ? "rgba(255,255,255,0.55)"
-                      : "#8a4b1f",
-                    fontWeight: 800,
+                      : "linear-gradient(135deg, #c45b12 0%, #9c3f0b 100%)",
+                    background: isPremiumUser
+                      ? "rgba(255,255,255,0.55)"
+                      : "linear-gradient(135deg, #c45b12 0%, #9c3f0b 100%)",
+                    fontWeight: 950,
                     textTransform: "none",
-                    borderRadius: 3,
-                    py: 1.2,
+                    fontSize: "1.08rem",
+                    boxShadow: isPremiumUser
+                      ? "none"
+                      : "0 15px 28px rgba(156, 63, 11, 0.28)",
                     "&:hover": {
                       borderColor: isPremiumUser ? "#8a4b1f" : "transparent",
-                      bgcolor: isPremiumUser ? "#fff" : "#733d18",
+                      background: isPremiumUser
+                        ? "#fff"
+                        : "linear-gradient(135deg, #af4c0e 0%, #813407 100%)",
                     },
                   }}
                 >
                   {premiumButtonLabel}
                 </Button>
-              </Paper>
-            </Stack>
-          </Stack>
-        </Paper>
-      </Box>
 
-      {/* Dev Panel unchanged */}
+                <Stack direction="row" spacing={0.75} justifyContent="center" alignItems="center">
+                  <ShieldOutlinedIcon sx={{ fontSize: 18, color: "#5a6570" }} />
+                  <Typography variant="body2" sx={{ color: "#4f5964" }}>
+                    Secure checkout with Stripe
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Stack>
+          </Paper>
+        </Box>
+      </Paper>
+
       {devMode && (
         <>
           <IconButton
             sx={{
+              display: { xs: "none", sm: "inline-flex" },
               position: "fixed",
               bottom: 16,
               right: 16,
-              bgcolor: "white",
-              border: "1px solid gray",
-              "&:hover": { bgcolor: "lightgray" },
+              zIndex: 20,
+              bgcolor: "rgba(255,255,255,0.9)",
+              border: "1px solid rgba(20,26,32,0.14)",
+              boxShadow: "0 8px 20px rgba(20,26,32,0.12)",
+              "&:hover": { bgcolor: "#fff" },
             }}
             onClick={() => setDevOpen(!devOpen)}
             aria-label="Open developer settings"
@@ -902,14 +1123,16 @@ export const CountdownSetup = () => {
           {devOpen && (
             <Box
               sx={{
+                display: { xs: "none", sm: "block" },
                 position: "fixed",
                 bottom: 70,
                 right: 16,
+                zIndex: 20,
                 p: 2,
                 bgcolor: "white",
-                border: "1px solid gray",
+                border: "1px solid rgba(20,26,32,0.16)",
                 borderRadius: 2,
-                boxShadow: 3,
+                boxShadow: "0 16px 36px rgba(20,26,32,0.18)",
                 width: 240,
               }}
             >
