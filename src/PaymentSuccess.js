@@ -1,11 +1,23 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
+import {
+  STRIPE_RETURN_EVENT_KEYS,
+  trackStripeReturnEventOnce,
+} from "./stripeReturnAnalytics";
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    trackStripeReturnEventOnce(
+      "payment_success",
+      {
+        source: "stripe_return",
+      },
+      STRIPE_RETURN_EVENT_KEYS.paymentSuccess
+    );
+
     try {
       localStorage.setItem("forcePremium", "true");
       localStorage.removeItem("startedCheckout");

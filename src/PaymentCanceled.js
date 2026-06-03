@@ -1,9 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Typography, Button } from "@mui/material";
+import {
+  STRIPE_RETURN_EVENT_KEYS,
+  trackStripeReturnEventOnce,
+} from "./stripeReturnAnalytics";
 
 export default function PaymentCanceled() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    trackStripeReturnEventOnce(
+      "payment_canceled",
+      {
+        source: "stripe_return_or_back_navigation",
+      },
+      STRIPE_RETURN_EVENT_KEYS.paymentCanceled
+    );
+  }, []);
 
   return (
     <Box

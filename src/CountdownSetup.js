@@ -18,6 +18,8 @@ import SettingsIcon from "@mui/icons-material/Settings";
 import Flicking from "@egjs/react-flicking";
 import "@egjs/react-flicking/dist/flicking.css";
 import { supabase } from "./supabaseClient";
+import { trackEvent } from "./analytics";
+import { resetStripeReturnEventFlags } from "./stripeReturnAnalytics";
 import { normalizeRevealMediaUrl } from "./mediaUrl";
 import PortfolioLogoLink from "./components/PortfolioLogoLink";
 import STRIPE_CONFIG from "./config/stripeConfig";
@@ -174,6 +176,9 @@ export const CountdownSetup = () => {
 
   useEffect(() => {
     if (location.pathname === "/premium") {
+      trackEvent("paywall_viewed", {
+        source: "premium_route",
+      });
       setPremiumNotice("Premium is now handled here on the setup screen.");
       window.setTimeout(() => {
         premiumRef.current?.scrollIntoView({
@@ -186,6 +191,18 @@ export const CountdownSetup = () => {
 
   const handleUnlock = async () => {
     if (isPremiumUser) return;
+
+    await trackEvent("checkout_started", {
+      source: "setup_premium_button",
+      price: "3.99",
+      currency: "usd",
+      duration,
+      gender,
+      fireworks_enabled: fireworksEnabled,
+      has_custom_gif: Boolean(customGif),
+      free_tries_remaining: freeTries,
+      secret_mode: secretMode,
+    });
 
     try {
       const origin = window.location.origin;
@@ -219,6 +236,7 @@ export const CountdownSetup = () => {
 
       const data = await response.json();
       if (data?.url) {
+        resetStripeReturnEventFlags();
         try {
           sessionStorage.setItem("startedCheckout", "1");
           localStorage.setItem("startedCheckout", "1");
@@ -245,6 +263,16 @@ export const CountdownSetup = () => {
         setFreeTries(newTries);
         localStorage.setItem("freeTries", newTries.toString());
       } else {
+        await trackEvent("paywall_viewed", {
+          source: "start_countdown_gate",
+          reason: "free_tries_exhausted",
+          duration,
+          gender,
+          fireworks_enabled: fireworksEnabled,
+          has_custom_gif: Boolean(customGif),
+          free_tries_remaining: freeTries,
+          secret_mode: secretMode,
+        });
         focusPremiumCard(
           "Premium is required to start with fireworks or a custom reveal link."
         );
@@ -684,11 +712,21 @@ export const CountdownSetup = () => {
                             bgcolor: "#fff",
                           },
                         }}
-                        onClick={() =>
+                        onClick={async () => {
+                          await trackEvent("premium_clicked", {
+                            source: "custom_reveal_unlock_button",
+                            duration,
+                            gender,
+                            fireworks_enabled: fireworksEnabled,
+                            has_custom_gif: Boolean(customGif),
+                            is_premium_user: isPremiumUser,
+                            free_tries_remaining: freeTries,
+                            secret_mode: secretMode,
+                          });
                           focusPremiumCard(
                             "Unlock premium to use your own reveal video or GIF."
-                          )
-                        }
+                          );
+                        }}
                       >
                         Unlock
                       </Button>

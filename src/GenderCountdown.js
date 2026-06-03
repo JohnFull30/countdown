@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import confetti from "canvas-confetti";
 import "./countdown.css";
 import { supabase } from "./supabaseClient";
+import { trackEvent } from "./analytics";
 import { getRevealMediaType, normalizeRevealMediaUrl } from "./mediaUrl";
 
 export default function GenderCountdown() {
@@ -202,6 +203,19 @@ export default function GenderCountdown() {
   const startDisabled =
     !!revealId && (secretLoading || !!secretError || !resolvedGender);
 
+  const handleCountdownStart = async () => {
+    await trackEvent("countdown_started", {
+      duration,
+      gender,
+      has_custom_gif: Boolean(customGifUrl),
+      fireworks_enabled: fireworks,
+      secret_mode: Boolean(revealId),
+      reveal_id: revealId || undefined,
+      media_type: mediaType,
+    });
+    setCountdownStarted(true);
+  };
+
   return (
     <div
       className="countdown-container"
@@ -281,7 +295,7 @@ export default function GenderCountdown() {
         <button
           className="start-btn"
           style={{ marginTop: "2rem", fontSize: "1.5rem" }}
-          onClick={() => setCountdownStarted(true)}
+          onClick={handleCountdownStart}
           disabled={startDisabled}
           title={
             startDisabled

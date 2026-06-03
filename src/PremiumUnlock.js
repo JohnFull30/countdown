@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -11,12 +11,25 @@ import {
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import STRIPE_CONFIG from "./config/stripeConfig";
+import { trackEvent } from "./analytics";
+import { resetStripeReturnEventFlags } from "./stripeReturnAnalytics";
 
 export default function PremiumUnlock() {
   const navigate = useNavigate();
-  const location = useLocation();
+
+  useEffect(() => {
+    trackEvent("paywall_viewed", {
+      source: "premium_page",
+    });
+  }, []);
 
   const handleUnlock = async () => {
+    await trackEvent("checkout_started", {
+      source: "premium_unlock_button",
+      price: "3.99",
+      currency: "usd",
+    });
+
     try {
       const origin = window.location.origin;
 
@@ -54,6 +67,7 @@ export default function PremiumUnlock() {
 
       const data = await response.json();
       if (data?.url) {
+        resetStripeReturnEventFlags();
         try {
           sessionStorage.setItem("startedCheckout", "1");
           localStorage.setItem("startedCheckout", "1");
