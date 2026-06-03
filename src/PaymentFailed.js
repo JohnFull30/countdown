@@ -30,7 +30,8 @@ export default function PaymentFailed() {
       </Typography>
 
       <Typography variant="body1" gutterBottom>
-        Something went wrong. Please try again or contact support.
+        Something went wrong. Failed payments do not unlock premium. Please try
+        again or contact support.
       </Typography>
 
       <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -8,6 +8,8 @@ import {
   List,
   ListItem,
   ListItemText,
+  Link,
+  Stack,
 } from "@mui/material";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import STRIPE_CONFIG from "./config/stripeConfig";
@@ -33,12 +35,8 @@ export default function PremiumUnlock() {
     try {
       const origin = window.location.origin;
 
-      // Where Stripe should go after payment success and when user presses "Back"
-      // Change these to whatever route you want.
       const successUrl = `${origin}/payment-success`;
-      const cancelUrl =
-        // Example: return to the page you started from (here, /premium)
-        `${origin}/payment-canceled`;
+      const cancelUrl = `${origin}/payment-canceled`;
 
       const response = await fetch(
         `${process.env.REACT_APP_SUPABASE_URL}/functions/v1/create-checkout-session`,
@@ -130,7 +128,8 @@ export default function PremiumUnlock() {
         </Box>
       </Button>
 
-      <Box
+      <Stack
+        spacing={2}
         sx={{
           bgcolor: "white",
           borderRadius: 3,
@@ -141,17 +140,17 @@ export default function PremiumUnlock() {
           textAlign: "center",
         }}
       >
-        <Typography variant="h4" gutterBottom>
+        <Typography variant="h4">
           🎁 Make It Yours
         </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body1" color="text.secondary">
           Unlock fireworks, custom themes, and advanced reveal options in the
           Countdown app.
         </Typography>
 
-        <Divider sx={{ my: 2 }} />
+        <Divider />
 
-        <Typography variant="subtitle1" gutterBottom>
+        <Typography variant="subtitle1">
           Premium Includes:
         </Typography>
         <List dense sx={{ textAlign: "left", mx: "auto", maxWidth: 360 }}>
@@ -173,17 +172,50 @@ export default function PremiumUnlock() {
           variant="contained"
           fullWidth
           size="large"
-          sx={{ mt: 3, borderRadius: 2, fontWeight: "bold" }}
+          sx={{ borderRadius: 2, fontWeight: "bold" }}
           onClick={handleUnlock}
         >
           UNLOCK NOW — $3.99
         </Button>
 
-        <Typography variant="caption" display="block" sx={{ mt: 2 }}>
-          You’ll be redirected back after checkout. Use Stripe’s back/cancel to
-          return.
+        <Typography variant="caption" display="block">
+          Payments are processed through Stripe Checkout. Canceled checkout
+          should not record a completed payment, and failed payments do not
+          unlock premium.
         </Typography>
-      </Box>
+
+        <Stack
+          component="footer"
+          direction="row"
+          spacing={1.5}
+          useFlexGap
+          flexWrap="wrap"
+          justifyContent="center"
+          sx={{
+            pt: 0.5,
+            "& a": {
+              color: "text.secondary",
+              fontSize: "0.85rem",
+              fontWeight: 700,
+              textDecorationColor: "rgba(0, 0, 0, 0.22)",
+              textUnderlineOffset: "3px",
+            },
+          }}
+        >
+          <Link component={RouterLink} to="/privacy">
+            Privacy
+          </Link>
+          <Link component={RouterLink} to="/terms">
+            Terms
+          </Link>
+          <Link component={RouterLink} to="/support">
+            Support
+          </Link>
+          <Link component={RouterLink} to="/refunds">
+            Refunds
+          </Link>
+        </Stack>
+      </Stack>
     </Box>
   );
 }

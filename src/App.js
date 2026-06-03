@@ -6,6 +6,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import PaymentSuccess from "./PaymentSuccess";
 import PaymentCanceled from "./PaymentCanceled";
 import PaymentFailed from "./PaymentFailed";
+import {
+  PrivacyPolicyPage,
+  RefundsPage,
+  SupportPage,
+  TermsOfUsePage,
+} from "./LegalPages";
 
 /**
  * Global guard to catch Stripe "back" arrow returns.
@@ -73,6 +79,10 @@ export default function App() {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-canceled" element={<PaymentCanceled />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms" element={<TermsOfUsePage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/refunds" element={<RefundsPage />} />
         <Route
           path="/countdown"
           element={

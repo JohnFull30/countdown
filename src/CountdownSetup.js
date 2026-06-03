@@ -1,6 +1,6 @@
 // src/CountdownSetup.js
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Link,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -1125,7 +1126,7 @@ export const CountdownSetup = () => {
                 <Stack direction="row" spacing={0.75} justifyContent="center" alignItems="center">
                   <ShieldOutlinedIcon sx={{ fontSize: 18, color: "#5a6570" }} />
                   <Typography variant="body2" sx={{ color: "#4f5964" }}>
-                    Secure checkout with Stripe
+                    Payments processed through Stripe Checkout
                   </Typography>
                 </Stack>
               </Stack>
@@ -1133,6 +1134,44 @@ export const CountdownSetup = () => {
           </Paper>
         </Box>
       </Paper>
+
+      <Stack
+        component="footer"
+        direction="row"
+        spacing={{ xs: 1.25, sm: 2 }}
+        useFlexGap
+        flexWrap="wrap"
+        justifyContent="center"
+        sx={{
+          mt: { xs: 2, sm: 2.5 },
+          px: 1,
+          textAlign: "center",
+          "& a": {
+            color: "rgba(20, 26, 32, 0.72)",
+            fontSize: "0.9rem",
+            fontWeight: 850,
+            textDecorationColor: "rgba(20, 26, 32, 0.24)",
+            textUnderlineOffset: "3px",
+            "&:hover": {
+              color: INK,
+              textDecorationColor: BRAND_GREEN,
+            },
+          },
+        }}
+      >
+        <Link component={RouterLink} to="/privacy">
+          Privacy
+        </Link>
+        <Link component={RouterLink} to="/terms">
+          Terms
+        </Link>
+        <Link component={RouterLink} to="/support">
+          Support
+        </Link>
+        <Link component={RouterLink} to="/refunds">
+          Refunds
+        </Link>
+      </Stack>
 
       <Dialog
         open={giphyDialogOpen}

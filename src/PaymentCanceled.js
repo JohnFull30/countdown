@@ -37,7 +37,8 @@ export default function PaymentCanceled() {
       </Typography>
 
       <Typography variant="body1" gutterBottom>
-        You canceled the payment. No charges were made.
+        Checkout was canceled before completion. No completed payment should be
+        recorded, and premium has not been unlocked.
       </Typography>
 
       <Button variant="contained" sx={{ mt: 3 }} onClick={() => navigate("/")}>
