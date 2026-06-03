@@ -14,6 +14,10 @@ import {
   Divider,
   Chip,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -158,6 +162,7 @@ export const CountdownSetup = () => {
   });
 
   const [devOpen, setDevOpen] = useState(false);
+  const [giphyDialogOpen, setGiphyDialogOpen] = useState(false);
   const [premiumNotice, setPremiumNotice] = useState("");
   const premiumRef = useRef(null);
   const navigate = useNavigate();
@@ -821,13 +826,13 @@ export const CountdownSetup = () => {
                         sx={{ color: INK, fontSize: 34, flexShrink: 0 }}
                       />
                       <TextField
-                        label="Custom reveal video or GIF link"
+                        label="Paste GIF or video link"
                         value={customGif}
                         onChange={(e) => setCustomGif(e.target.value)}
                         disabled={!isPremiumUser}
                         helperText={
                           isPremiumUser
-                            ? "Paste a GIF, video, or supported media link."
+                            ? "Use a GIPHY link, direct .gif, or .mp4 reveal background."
                             : "Premium lets you upload your own video or GIF."
                         }
                         variant="standard"
@@ -850,6 +855,34 @@ export const CountdownSetup = () => {
                         }}
                       />
                     </Stack>
+                    <Button
+                      variant="outlined"
+                      size="medium"
+                      disabled={!isPremiumUser}
+                      onClick={() => setGiphyDialogOpen(true)}
+                      sx={{
+                        alignSelf: { xs: "stretch", sm: "center" },
+                        minWidth: { xs: "auto", sm: 170 },
+                        borderRadius: 2,
+                        borderColor: "rgba(20, 26, 32, 0.16)",
+                        bgcolor: "#fff",
+                        color: INK,
+                        fontWeight: 900,
+                        textTransform: "none",
+                        whiteSpace: "nowrap",
+                        "&:hover": {
+                          borderColor: BRAND_GREEN,
+                          bgcolor: BRAND_GREEN_SOFT,
+                        },
+                        "&.Mui-disabled": {
+                          bgcolor: "rgba(255,255,255,0.62)",
+                          color: "#8a939b",
+                          borderColor: "rgba(20, 26, 32, 0.1)",
+                        },
+                      }}
+                    >
+                      Choose from GIPHY
+                    </Button>
                     {!isPremiumUser && (
                       <Button
                         variant="outlined"
@@ -1100,6 +1133,44 @@ export const CountdownSetup = () => {
           </Paper>
         </Box>
       </Paper>
+
+      <Dialog
+        open={giphyDialogOpen}
+        onClose={() => setGiphyDialogOpen(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 0.5,
+          },
+        }}
+      >
+        <DialogTitle sx={{ color: INK, fontWeight: 950, pb: 0.75 }}>
+          GIPHY search is coming soon
+        </DialogTitle>
+        <DialogContent>
+          <Typography sx={{ color: "#45515d", lineHeight: 1.6 }}>
+            For now, paste a GIPHY link, direct .gif, or .mp4 URL into the
+            custom media field to use it as your reveal background.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2.5 }}>
+          <Button
+            variant="contained"
+            onClick={() => setGiphyDialogOpen(false)}
+            sx={{
+              borderRadius: 2,
+              bgcolor: BRAND_GREEN,
+              fontWeight: 900,
+              textTransform: "none",
+              "&:hover": { bgcolor: BRAND_GREEN_DARK },
+            }}
+          >
+            Got it
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {devMode && (
         <>
