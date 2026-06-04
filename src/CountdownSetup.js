@@ -490,7 +490,7 @@ export const CountdownSetup = () => {
           <Stack spacing={{ xs: 3, md: 3.5 }}>
             <Box sx={{ textAlign: { xs: "center", lg: "left" } }}>
               <Chip
-                label="🎉 No setup stress. Just tap, count down, and reveal."
+                label="No setup stress. Just tap, count down, and reveal."
                 sx={{
                   mb: 2.25,
                   maxWidth: "100%",
@@ -628,7 +628,7 @@ export const CountdownSetup = () => {
                   mb: 0.75,
                 }}
               >
-                🎉 Set up your reveal
+                Set up your reveal
               </Typography>
               <Typography
                 variant="body1"
@@ -926,7 +926,7 @@ export const CountdownSetup = () => {
                   }}
                   onClick={handleSubmit}
                 >
-                  🚀 Start Countdown
+                  Start Countdown
                 </Button>
               </Stack>
             </Box>
