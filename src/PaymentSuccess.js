@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Paper, Stack, Chip, Divider } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import {
   STRIPE_RETURN_EVENT_KEYS,
@@ -44,8 +44,8 @@ export default function PaymentSuccess() {
 
     try {
       localStorage.setItem("forcePremium", "true");
-      localStorage.removeItem("startedCheckout");
       sessionStorage.removeItem("startedCheckout");
+      localStorage.removeItem("startedCheckout");
     } catch (error) {
       console.warn("Unable to persist premium unlock:", error);
     }
@@ -71,11 +71,10 @@ export default function PaymentSuccess() {
 
           <Stack spacing={1.25} alignItems="center">
             <Typography variant="h3" sx={{ fontWeight: 700, color: "#18221b" }}>
-              You&apos;re all set.
+              Premium is unlocked.
             </Typography>
             <Typography variant="body1" sx={{ color: "rgba(24,34,27,0.78)" }}>
-              Premium is unlocked for this browser, so you can start building a
-              more personalized reveal countdown.
+              Your premium reveal features are ready in this browser.
             </Typography>
             <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
               Your Stripe receipt should arrive by email shortly.
@@ -96,42 +95,8 @@ export default function PaymentSuccess() {
               "&:hover": { bgcolor: "#243226" },
             }}
           >
-            Create your countdown
+            Back to Countdown Setup
           </Button>
-
-          <Divider sx={{ width: "100%", borderColor: "rgba(24,34,27,0.1)" }} />
-
-          <Box sx={{ width: "100%", textAlign: "left" }}>
-            <Stack spacing={1.5}>
-              <Stack
-                direction={{ xs: "column", sm: "row" }}
-                spacing={1}
-                alignItems={{ xs: "flex-start", sm: "center" }}
-                justifyContent="space-between"
-              >
-                <Typography variant="subtitle1" sx={{ fontWeight: 700, color: "#18221b" }}>
-                  Support the dev
-                </Typography>
-                <Chip size="small" label="Coming soon" variant="outlined" />
-              </Stack>
-              <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.68)" }}>
-                Enjoying the app? A small tip helps support future reveal themes,
-                polish, and new features.
-              </Typography>
-              <Button
-                variant="outlined"
-                disabled
-                sx={{
-                  alignSelf: { xs: "stretch", sm: "flex-start" },
-                  borderRadius: 999,
-                  textTransform: "none",
-                  fontWeight: 700,
-                }}
-              >
-                Tip the dev - coming soon
-              </Button>
-            </Stack>
-          </Box>
         </Stack>
       </Paper>
     </Box>
