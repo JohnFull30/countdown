@@ -11,10 +11,7 @@ serve(async (req) => {
     const sig = req.headers.get("stripe-signature");
     const body = await req.text();
 
-    console.log("🔔 Webhook received");
-    console.log("Signature header:", sig);
-    console.log("First 500 chars of body:", body.slice(0, 500));
-    console.log("Using webhook secret:", Deno.env.get("STRIPE_WEBHOOK_SECRET"));
+    console.log("Stripe webhook received");
 
     const event = stripe.webhooks.constructEvent(
       body,
@@ -22,14 +19,12 @@ serve(async (req) => {
       Deno.env.get("STRIPE_WEBHOOK_SECRET")!
     );
 
-    console.log("✅ Verified event:", event.type);
+    console.log("Verified Stripe webhook event:", event.type);
 
     // Just acknowledge for now
     return new Response("ok", { status: 200 });
   } catch (err) {
-    console.error("❌ Webhook error:");
-    console.error(err); // full error object
-    console.error(err.stack || ""); // stack trace if available
+    console.error("Stripe webhook verification failed:", err?.message || err);
     return new Response("Webhook Error", { status: 400 });
   }
 });

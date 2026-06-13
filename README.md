@@ -81,6 +81,20 @@ Then select:
 
 ---
 
+## Optional Developer Tips
+
+Tips use a separate Stripe Payment Link from the premium checkout flow.
+
+1. Create a dedicated Payment Link in Stripe for developer tips.
+2. Configure it with either a custom amount or preset tip choices.
+3. Add the public Payment Link to `REACT_APP_STRIPE_TIP_URL`.
+4. Restart the React development server after changing environment variables.
+
+Only the public Stripe Payment Link belongs in React environment variables. Do
+not add Stripe secret keys to client-side `.env` files.
+
+---
+
 ## 📱 Mobile Build (Capacitor)
 
 You can also run the app as a mobile build:
