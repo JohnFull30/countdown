@@ -1,11 +1,12 @@
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Paper, Stack } from "@mui/material";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import { Box, Typography, Button, Paper, Stack, Divider, Link } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import {
   STRIPE_RETURN_EVENT_KEYS,
   trackStripeReturnEventOnce,
 } from "./stripeReturnAnalytics";
+import TipDeveloperButton from "./components/TipDeveloperButton";
 
 const pageSx = {
   minHeight: "100vh",
@@ -79,6 +80,22 @@ export default function PaymentSuccess() {
             <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
               Your Stripe receipt should arrive by email shortly.
             </Typography>
+            <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
+              Paid but still not seeing premium?{" "}
+              <Link
+                component={RouterLink}
+                to="/support"
+                sx={{
+                  color: "#18221b",
+                  fontWeight: 700,
+                  textDecorationColor: "rgba(24,34,27,0.32)",
+                  "&:hover": { textDecorationColor: "#18221b" },
+                }}
+              >
+                Contact support
+              </Link>
+              .
+            </Typography>
           </Stack>
 
           <Button
@@ -97,6 +114,47 @@ export default function PaymentSuccess() {
           >
             Back to Countdown Setup
           </Button>
+
+          <Divider flexItem sx={{ borderColor: "rgba(24,34,27,0.12)" }} />
+
+          <Stack
+            spacing={1.35}
+            alignItems="center"
+            sx={{
+              width: "100%",
+              p: { xs: 1.5, sm: 2 },
+              borderRadius: 3,
+              bgcolor: "rgba(255,255,255,0.45)",
+              border: "1px solid rgba(24,34,27,0.08)",
+            }}
+          >
+            <Typography variant="h6" sx={{ fontWeight: 800, color: "#18221b" }}>
+              Want to support future tools?
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{ color: "rgba(24,34,27,0.72)", lineHeight: 1.55 }}
+            >
+              Your premium purchase already supports the app. An additional tip
+              is completely optional and helps fund future improvements.
+            </Typography>
+            <TipDeveloperButton
+              source="payment_success"
+              variant="outlined"
+              sx={{
+                borderRadius: 999,
+                borderColor: "rgba(24,34,27,0.24)",
+                color: "#18221b",
+                "&:hover": {
+                  borderColor: "#18221b",
+                  bgcolor: "rgba(24,34,27,0.04)",
+                },
+              }}
+            />
+            <Typography variant="caption" sx={{ color: "rgba(24,34,27,0.58)" }}>
+              No additional features are required or unlocked by tipping.
+            </Typography>
+          </Stack>
         </Stack>
       </Paper>
     </Box>

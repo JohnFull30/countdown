@@ -1,8 +1,12 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Paper, Stack } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Link } from "@mui/material";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
 import { trackEvent } from "./analytics";
+import {
+  SUPPORT_EMAIL,
+  createSupportMailtoUrl,
+} from "./config/contact";
 
 const pageSx = {
   minHeight: "100vh",
@@ -29,6 +33,7 @@ const cardSx = {
 
 export default function PaymentFailed() {
   const navigate = useNavigate();
+  const supportMailto = createSupportMailtoUrl("Countdown Payment Support");
 
   useEffect(() => {
     trackEvent("payment_failed", {
@@ -66,7 +71,20 @@ export default function PaymentFailed() {
               connection dropped.
             </Typography>
             <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
-              If this keeps happening, contact support.
+              If this keeps happening, email{" "}
+              <Link
+                href={supportMailto}
+                aria-label={`Email payment support at ${SUPPORT_EMAIL}`}
+                sx={{
+                  color: "#18221b",
+                  fontWeight: 700,
+                  textDecorationColor: "rgba(24,34,27,0.32)",
+                  "&:hover": { textDecorationColor: "#18221b" },
+                }}
+              >
+                {SUPPORT_EMAIL}
+              </Link>
+              .
             </Typography>
           </Stack>
 

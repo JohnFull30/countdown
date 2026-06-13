@@ -1,11 +1,15 @@
 import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Box, Typography, Button, Paper, Stack } from "@mui/material";
+import { Box, Typography, Button, Paper, Stack, Link } from "@mui/material";
 import CancelOutlinedIcon from "@mui/icons-material/CancelOutlined";
 import {
   STRIPE_RETURN_EVENT_KEYS,
   trackStripeReturnEventOnce,
 } from "./stripeReturnAnalytics";
+import {
+  SUPPORT_EMAIL,
+  createSupportMailtoUrl,
+} from "./config/contact";
 
 const pageSx = {
   minHeight: "100vh",
@@ -32,6 +36,7 @@ const cardSx = {
 
 export default function PaymentCanceled() {
   const navigate = useNavigate();
+  const supportMailto = createSupportMailtoUrl("Countdown Payment Support");
 
   useEffect(() => {
     trackStripeReturnEventOnce(
@@ -66,11 +71,27 @@ export default function PaymentCanceled() {
               Checkout canceled.
             </Typography>
             <Typography variant="body1" sx={{ color: "rgba(24,34,27,0.78)" }}>
-              No charge was made.
+              No charge was completed.
             </Typography>
             <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
               You can keep using the basic countdown, or try premium again when
               you&apos;re ready.
+            </Typography>
+            <Typography variant="body2" sx={{ color: "rgba(24,34,27,0.62)" }}>
+              If you believe there is a billing issue, email{" "}
+              <Link
+                href={supportMailto}
+                aria-label={`Email billing support at ${SUPPORT_EMAIL}`}
+                sx={{
+                  color: "#18221b",
+                  fontWeight: 700,
+                  textDecorationColor: "rgba(24,34,27,0.32)",
+                  "&:hover": { textDecorationColor: "#18221b" },
+                }}
+              >
+                {SUPPORT_EMAIL}
+              </Link>
+              .
             </Typography>
           </Stack>
 

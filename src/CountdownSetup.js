@@ -1,6 +1,6 @@
 // src/CountdownSetup.js
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
   Stack,
   Divider,
   Chip,
+  Link,
   Tooltip,
   Dialog,
   DialogTitle,
@@ -39,6 +40,8 @@ import { trackEvent } from "./analytics";
 import { resetStripeReturnEventFlags } from "./stripeReturnAnalytics";
 import { normalizeRevealMediaUrl } from "./mediaUrl";
 import PortfolioLogoLink from "./components/PortfolioLogoLink";
+import TipDeveloperButton from "./components/TipDeveloperButton";
+import SupportFooter from "./SupportFooter";
 import STRIPE_CONFIG from "./config/stripeConfig";
 
 const GENDER_STYLES = {
@@ -64,19 +67,37 @@ const INK = "#141a20";
 const MUTED = "#536052";
 const PORTFOLIO_URL = "https://johnfull30.github.io/MyPortfolio/";
 
+const SETUP_SPACING = {
+  pageTop: {
+    xs: "max(clamp(20px, 3vh, 34px), env(safe-area-inset-top))",
+    sm: "max(clamp(24px, 3vh, 42px), env(safe-area-inset-top))",
+    lg: "max(clamp(28px, 3vh, 48px), env(safe-area-inset-top))",
+  },
+  logoToCard: "clamp(18px, 2.5vh, 36px)",
+  cardToLower: "clamp(20px, 3vh, 36px)",
+  developerToTip: "clamp(8px, 1vh, 12px)",
+  tipToFooter: "clamp(16px, 2vh, 24px)",
+  footerBottom: "max(clamp(14px, 2vh, 24px), env(safe-area-inset-bottom))",
+};
+
 const PORTFOLIO_LOGO_LINK_WRAP_SX = {
-  position: "absolute",
-  top: { xs: 14, sm: 18 },
-  left: "50%",
-  transform: "translateX(-50%)",
+  display: "flex",
+  justifyContent: "center",
+  mb: SETUP_SPACING.logoToCard,
   "--logo-tile-bg": "rgba(255, 255, 255, 0.32)",
   "--logo-tile-bg-hover": "rgba(255, 255, 255, 0.46)",
   "--logo-tile-highlight": "rgba(255, 255, 255, 0.58)",
   "--logo-tile-shadow": "rgba(15, 23, 42, 0.12)",
   "& .portfolio-logo-link .theme-logo": {
-    width: 52,
-    height: 44,
+    width: { xs: 46, sm: 48, md: 50 },
+    height: { xs: 38, sm: 40, md: 42 },
     transform: "translateY(1px)",
+  },
+  "@media (max-height: 820px)": {
+    "& .portfolio-logo-link .theme-logo": {
+      width: 42,
+      height: 36,
+    },
   },
 };
 
@@ -440,21 +461,21 @@ export const CountdownSetup = () => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         background:
           "radial-gradient(circle at 18% 12%, rgba(255,255,255,0.54), transparent 24%), linear-gradient(135deg, #94bf8a 0%, #c9dfbd 48%, #fff5df 100%)",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        justifyContent: "center",
+        justifyContent: "flex-start",
         position: "relative",
         px: { xs: 1.5, sm: 3, md: 4 },
-        pt: { xs: 10.5, sm: 12 },
-        pb: { xs: 3, sm: 5 },
+        pt: SETUP_SPACING.pageTop,
+        pb: 0,
         boxSizing: "border-box",
       }}
     >
-      <Box sx={PORTFOLIO_LOGO_LINK_WRAP_SX}>
+      <Box component="header" sx={PORTFOLIO_LOGO_LINK_WRAP_SX}>
         <PortfolioLogoLink
           href={PORTFOLIO_URL}
           ariaLabel="Visit John Fuller's portfolio"
@@ -465,11 +486,26 @@ export const CountdownSetup = () => {
         />
       </Box>
 
+      <Box
+        component="main"
+        sx={{
+          width: "100%",
+          display: "flex",
+          justifyContent: "center",
+          flex: "0 0 auto",
+          alignItems: "stretch",
+          py: 0,
+        }}
+      >
       <Paper
         elevation={0}
         sx={{
           width: "100%",
-          maxWidth: 1180,
+          maxWidth: {
+            xs: "100%",
+            lg: 1180,
+            xl: "min(1600px, calc(100vw - 160px))",
+          },
           mx: "auto",
           borderRadius: { xs: 4, md: 5 },
           overflow: "hidden",
@@ -477,22 +513,46 @@ export const CountdownSetup = () => {
           backdropFilter: "blur(22px)",
           border: "1px solid rgba(255,255,255,0.76)",
           boxShadow: "0 28px 76px rgba(42, 65, 36, 0.24)",
+          "@media (min-width: 900px) and (max-height: 900px)": {
+            borderRadius: 4,
+          },
+          "@media (min-width: 1600px) and (min-height: 900px)": {
+            maxWidth: "min(1600px, calc(100vw - 180px))",
+          },
         }}
       >
         <Box
           sx={{
             display: "grid",
             gridTemplateColumns: { xs: "1fr", lg: "1.25fr 0.9fr" },
-            gap: { xs: 3, lg: 4.5 },
-            p: { xs: 2.25, sm: 4, md: 5 },
+            gap: { xs: 3, lg: 4 },
+            p: { xs: 2.25, sm: 3.25, md: 3.75 },
+            "@media (min-width: 900px) and (max-height: 900px)": {
+              p: 3,
+              gap: 3,
+            },
+            "@media (min-width: 1600px) and (min-height: 900px)": {
+              p: 5,
+              gap: 5.5,
+            },
           }}
         >
-          <Stack spacing={{ xs: 3, md: 3.5 }}>
+          <Stack
+            spacing={{ xs: 3, md: 2.75 }}
+            sx={{
+              "@media (min-width: 900px) and (max-height: 900px)": {
+                gap: 2.25,
+              },
+              "@media (min-width: 1600px) and (min-height: 900px)": {
+                gap: 3.35,
+              },
+            }}
+          >
             <Box sx={{ textAlign: { xs: "center", lg: "left" } }}>
               <Chip
                 label="No setup stress. Just tap, count down, and reveal."
                 sx={{
-                  mb: 2.25,
+                  mb: { xs: 2.25, md: 1.6 },
                   maxWidth: "100%",
                   height: "auto",
                   py: 0.55,
@@ -506,6 +566,9 @@ export const CountdownSetup = () => {
                     lineHeight: 1.35,
                     px: 1.25,
                   },
+                  "@media (min-width: 900px) and (max-height: 900px)": {
+                    mb: 1.25,
+                  },
                 }}
               />
               <Typography
@@ -515,9 +578,22 @@ export const CountdownSetup = () => {
                   color: INK,
                   fontWeight: 950,
                   letterSpacing: 0,
-                  fontSize: { xs: "2.15rem", sm: "3rem", md: "3.35rem" },
+                  fontSize: {
+                    xs: "2.15rem",
+                    sm: "2.8rem",
+                    md: "3rem",
+                    xl: "3.2rem",
+                  },
                   lineHeight: 1.02,
                   mb: 1.5,
+                  "@media (min-width: 900px) and (max-height: 900px)": {
+                    fontSize: "2.75rem",
+                    mb: 1.1,
+                  },
+                  "@media (min-width: 1600px) and (min-height: 900px)": {
+                    fontSize: "3.35rem",
+                    mb: 1.35,
+                  },
                 }}
               >
                 Create Your Gender Reveal Countdown
@@ -526,8 +602,8 @@ export const CountdownSetup = () => {
                 variant="body1"
                 sx={{
                   color: "#2e3942",
-                  fontSize: { xs: "1rem", sm: "1.12rem" },
-                  lineHeight: 1.6,
+                  fontSize: { xs: "1rem", sm: "1.06rem" },
+                  lineHeight: 1.52,
                   maxWidth: 690,
                   mx: { xs: "auto", lg: 0 },
                 }}
@@ -543,6 +619,9 @@ export const CountdownSetup = () => {
                 display: "grid",
                 gridTemplateColumns: { xs: "1fr", md: "repeat(3, 1fr)" },
                 gap: { xs: 1.75, md: 2 },
+                "@media (min-width: 900px) and (max-height: 900px)": {
+                  gap: 1.25,
+                },
               }}
             >
               {HOW_IT_WORKS.map(({ number, title, body, Icon }) => (
@@ -553,21 +632,29 @@ export const CountdownSetup = () => {
                     textAlign: { xs: "left", md: "center" },
                     display: "grid",
                     gridTemplateColumns: { xs: "auto 1fr", md: "1fr" },
-                    gap: { xs: 1.5, md: 1 },
+                    gap: { xs: 1.5, md: 0.75 },
                     alignItems: "center",
                   }}
                 >
                   <Box
                     sx={{
                       position: "relative",
-                      width: { xs: 76, sm: 86, md: 94 },
-                      height: { xs: 76, sm: 86, md: 94 },
+                      width: { xs: 76, sm: 82, md: 82, xl: 90 },
+                      height: { xs: 76, sm: 82, md: 82, xl: 90 },
                       mx: { xs: 0, md: "auto" },
                       borderRadius: "50%",
                       bgcolor: BRAND_GREEN_SOFT,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
+                      "@media (min-width: 900px) and (max-height: 900px)": {
+                        width: 74,
+                        height: 74,
+                      },
+                      "@media (min-width: 1600px) and (min-height: 900px)": {
+                        width: 94,
+                        height: 94,
+                      },
                     }}
                   >
                     <Box
@@ -590,7 +677,7 @@ export const CountdownSetup = () => {
                     >
                       {number}
                     </Box>
-                    <Icon sx={{ fontSize: { xs: 38, md: 42 }, color: "#102f17" }} />
+                    <Icon sx={{ fontSize: { xs: 38, md: 38 }, color: "#102f17" }} />
                   </Box>
                   <Box>
                     <Typography
@@ -603,7 +690,7 @@ export const CountdownSetup = () => {
                       variant="body2"
                       sx={{
                         color: MUTED,
-                        lineHeight: 1.45,
+                        lineHeight: 1.38,
                         maxWidth: { xs: "none", md: 190 },
                         mx: { xs: 0, md: "auto" },
                       }}
@@ -625,20 +712,20 @@ export const CountdownSetup = () => {
                   color: INK,
                   fontWeight: 950,
                   letterSpacing: 0,
-                  mb: 0.75,
+                  mb: 0.55,
                 }}
               >
                 Set up your reveal
               </Typography>
               <Typography
                 variant="body1"
-                sx={{ color: MUTED, lineHeight: 1.55, mb: 2.75 }}
+                sx={{ color: MUTED, lineHeight: 1.45, mb: { xs: 2.75, md: 1.8 } }}
               >
                 Choose the countdown length, reveal result, and effects before
                 you start.
               </Typography>
 
-              <Stack spacing={2.25}>
+              <Stack spacing={{ xs: 2.25, md: 1.65 }}>
                 <Box
                   sx={{
                     display: "grid",
@@ -656,14 +743,14 @@ export const CountdownSetup = () => {
                     </Typography>
                     <Box
                       sx={{
-                        height: 56,
+                        height: { xs: 56, md: 52 },
                         borderRadius: 2,
                         overflow: "hidden",
                         bgcolor: "#fff",
                         border: "1px solid rgba(20, 26, 32, 0.1)",
                         boxShadow: "0 7px 18px rgba(20, 26, 32, 0.07)",
                         display: "grid",
-                        gridTemplateColumns: "56px 1fr 56px",
+                        gridTemplateColumns: { xs: "56px 1fr 56px", md: "52px 1fr 52px" },
                         alignItems: "stretch",
                         maxWidth: { xs: "100%", sm: 230 },
                       }}
@@ -915,14 +1002,17 @@ export const CountdownSetup = () => {
                   size="large"
                   fullWidth
                   sx={{
-                    py: 1.75,
+                    py: { xs: 1.75, md: 1.5 },
                     borderRadius: 2.4,
                     bgcolor: BRAND_GREEN,
                     fontWeight: 950,
                     textTransform: "none",
                     fontSize: { xs: "1.08rem", sm: "1.2rem" },
                     boxShadow: "0 15px 26px rgba(47, 111, 70, 0.28)",
-                    "&:hover": { bgcolor: BRAND_GREEN_DARK },
+                    "&:hover": {
+                      bgcolor: BRAND_GREEN_DARK,
+                      boxShadow: "none",
+                    },
                   }}
                   onClick={handleSubmit}
                 >
@@ -936,7 +1026,7 @@ export const CountdownSetup = () => {
             ref={premiumRef}
             elevation={0}
             sx={{
-              p: { xs: 2.5, sm: 3.4 },
+              p: { xs: 2.5, sm: 3, md: 3.1 },
               borderRadius: 4,
               bgcolor:
                 "linear-gradient(160deg, rgba(255,250,242,0.98) 0%, rgba(255,246,236,0.96) 100%)",
@@ -945,14 +1035,25 @@ export const CountdownSetup = () => {
               display: "flex",
               flexDirection: "column",
               alignSelf: "stretch",
+              "@media (min-width: 900px) and (max-height: 900px)": {
+                p: 2.6,
+              },
             }}
           >
-            <Stack spacing={2.6} sx={{ height: "100%" }}>
-              <Stack alignItems="center" textAlign="center" spacing={1.45}>
+            <Stack
+              spacing={{ xs: 2.6, md: 2.15 }}
+              sx={{
+                height: "100%",
+                "@media (min-width: 900px) and (max-height: 900px)": {
+                  gap: 1.75,
+                },
+              }}
+            >
+              <Stack alignItems="center" textAlign="center" spacing={{ xs: 1.45, md: 1.15 }}>
                 <Box
                   sx={{
-                    width: 58,
-                    height: 58,
+                    width: { xs: 58, md: 52 },
+                    height: { xs: 58, md: 52 },
                     borderRadius: "50%",
                     bgcolor: "rgba(255, 217, 146, 0.38)",
                     border: "1px solid rgba(179, 100, 43, 0.18)",
@@ -963,7 +1064,7 @@ export const CountdownSetup = () => {
                     boxShadow: "0 12px 30px rgba(154, 80, 26, 0.14)",
                   }}
                 >
-                  <WorkspacePremiumOutlinedIcon sx={{ fontSize: 34 }} />
+                  <WorkspacePremiumOutlinedIcon sx={{ fontSize: { xs: 34, md: 30 } }} />
                 </Box>
                 <Chip
                   label="👑 Premium Reveal"
@@ -981,7 +1082,10 @@ export const CountdownSetup = () => {
                     fontWeight: 950,
                     lineHeight: 1.08,
                     letterSpacing: 0,
-                    fontSize: { xs: "1.9rem", sm: "2.2rem" },
+                    fontSize: { xs: "1.9rem", sm: "2.05rem", xl: "2.2rem" },
+                    "@media (min-width: 900px) and (max-height: 900px)": {
+                      fontSize: "1.9rem",
+                    },
                   }}
                 >
                   Make the big reveal unforgettable.
@@ -990,7 +1094,7 @@ export const CountdownSetup = () => {
                   variant="body1"
                   sx={{
                     color: "#45515d",
-                    lineHeight: 1.6,
+                    lineHeight: 1.48,
                     maxWidth: 390,
                   }}
                 >
@@ -999,7 +1103,7 @@ export const CountdownSetup = () => {
                 </Typography>
               </Stack>
 
-              <Stack spacing={1.35}>
+              <Stack spacing={{ xs: 1.35, md: 1.05 }}>
                 {PREMIUM_FEATURES.map(({ label, Icon, bg, color }) => (
                   <Stack
                     key={label}
@@ -1007,7 +1111,7 @@ export const CountdownSetup = () => {
                     spacing={1.45}
                     alignItems="center"
                     sx={{
-                      pb: 1.35,
+                      pb: { xs: 1.35, md: 1.05 },
                       borderBottom: "1px solid rgba(120, 72, 32, 0.11)",
                       "&:last-of-type": {
                         borderBottom: "none",
@@ -1017,8 +1121,8 @@ export const CountdownSetup = () => {
                   >
                     <Box
                       sx={{
-                        width: 44,
-                        height: 44,
+                        width: { xs: 44, md: 40 },
+                        height: { xs: 44, md: 40 },
                         borderRadius: "50%",
                         bgcolor: bg,
                         color,
@@ -1028,9 +1132,15 @@ export const CountdownSetup = () => {
                         flexShrink: 0,
                       }}
                     >
-                      <Icon sx={{ fontSize: 24 }} />
+                      <Icon sx={{ fontSize: { xs: 24, md: 22 } }} />
                     </Box>
-                    <Typography sx={{ color: INK, fontSize: "1rem", lineHeight: 1.35 }}>
+                    <Typography
+                      sx={{
+                        color: INK,
+                        fontSize: { xs: "1rem", md: "0.97rem" },
+                        lineHeight: 1.32,
+                      }}
+                    >
                       {label}
                     </Typography>
                   </Stack>
@@ -1039,11 +1149,11 @@ export const CountdownSetup = () => {
 
               <Box sx={{ flex: 1 }} />
 
-              <Stack spacing={1.8}>
+              <Stack spacing={{ xs: 1.8, md: 1.35 }}>
                 <Paper
                   elevation={0}
                   sx={{
-                    p: 1.8,
+                    p: { xs: 1.8, md: 1.45 },
                     borderRadius: 2,
                     bgcolor: "rgba(255, 236, 239, 0.88)",
                     border: "1px solid rgba(244, 63, 125, 0.22)",
@@ -1064,7 +1174,7 @@ export const CountdownSetup = () => {
                     >
                       🎁
                     </Box>
-                    <Typography sx={{ color: INK, lineHeight: 1.35 }}>
+                    <Typography sx={{ color: INK, lineHeight: 1.3 }}>
                       {freeTryMessage}
                     </Typography>
                   </Stack>
@@ -1093,7 +1203,7 @@ export const CountdownSetup = () => {
                   startIcon={<LockOutlinedIcon />}
                   onClick={handleUnlock}
                   sx={{
-                    py: 1.55,
+                    py: { xs: 1.55, md: 1.35 },
                     borderRadius: 2.2,
                     borderColor: isPremiumUser
                       ? "rgba(138, 75, 31, 0.28)"
@@ -1116,6 +1226,7 @@ export const CountdownSetup = () => {
                       background: isPremiumUser
                         ? "#fff"
                         : "linear-gradient(135deg, #af4c0e 0%, #813407 100%)",
+                      boxShadow: "none",
                     },
                   }}
                 >
@@ -1128,11 +1239,70 @@ export const CountdownSetup = () => {
                     Secure checkout with Stripe
                   </Typography>
                 </Stack>
+
+                <Typography
+                  variant="body2"
+                  sx={{ color: "#4f5964", textAlign: "center", lineHeight: 1.4 }}
+                >
+                  Questions about premium or payment?{" "}
+                  <Link
+                    component={RouterLink}
+                    to="/support"
+                    sx={{
+                      color: "#8a4b1f",
+                      fontWeight: 850,
+                      textDecorationColor: "rgba(138,75,31,0.32)",
+                      "&:hover": { textDecorationColor: "#8a4b1f" },
+                    }}
+                  >
+                    Contact support
+                  </Link>
+                  .
+                </Typography>
               </Stack>
             </Stack>
           </Paper>
         </Box>
       </Paper>
+      </Box>
+
+      <Stack
+        component="section"
+        spacing={0}
+        alignItems="center"
+        sx={{
+          width: "100%",
+          mt: SETUP_SPACING.cardToLower,
+          mb: 0,
+          textAlign: "center",
+          color: "rgba(20,26,32,0.68)",
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{ mb: SETUP_SPACING.developerToTip }}
+        >
+          Countdown is built by an independent developer.
+        </Typography>
+        <TipDeveloperButton
+          source="countdown_setup"
+          variant="text"
+          size="small"
+          sx={{
+            color: "#23462a",
+            px: 1,
+            "&:hover": {
+              bgcolor: "transparent",
+              boxShadow: "none",
+            },
+          }}
+        />
+        <SupportFooter
+          compact
+          topSpacing={SETUP_SPACING.tipToFooter}
+          bottomSpacing={SETUP_SPACING.footerBottom}
+        />
+      </Stack>
 
       <Dialog
         open={giphyDialogOpen}

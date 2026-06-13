@@ -7,7 +7,9 @@ body,
 }
 
 body {
-  background-color: darkseagreen;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.54), transparent 24%),
+    linear-gradient(135deg, #94bf8a 0%, #c9dfbd 48%, #fff5df 100%);
 }
 
 .countdown-container {

@@ -6,6 +6,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import PaymentSuccess from "./PaymentSuccess";
 import PaymentCanceled from "./PaymentCanceled";
 import PaymentFailed from "./PaymentFailed";
+import Support from "./Support";
+import SupportFooter from "./SupportFooter";
 
 /**
  * Global guard to catch Stripe "back" arrow returns.
@@ -16,7 +18,6 @@ function StripeReturnGuard() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("location change", location.pathname);
     const hasStarted =
       sessionStorage.getItem("startedCheckout") === "1" ||
       localStorage.getItem("startedCheckout") === "1";
@@ -37,9 +38,7 @@ function StripeReturnGuard() {
       }
     }
 
-    // BFCache restore (Safari/iOS)
     const onPageShow = (e) => {
-      console.log("pageshow", e);
       if (e.persisted) {
         const started =
           sessionStorage.getItem("startedCheckout") === "1" ||
@@ -64,12 +63,20 @@ function StripeReturnGuard() {
 }
 
 export default function App() {
+  const location = useLocation();
+  const showSupportFooter =
+    location.pathname !== "/" &&
+    location.pathname !== "/premium" &&
+    location.pathname !== "/countdown" &&
+    location.pathname !== "/support";
+
   return (
     <>
       <StripeReturnGuard />
       <Routes>
         <Route path="/" element={<CountdownSetup />} />
         <Route path="/premium" element={<CountdownSetup />} />
+        <Route path="/support" element={<Support />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-canceled" element={<PaymentCanceled />} />
         <Route path="/payment-failed" element={<PaymentFailed />} />
@@ -82,6 +89,7 @@ export default function App() {
           }
         />
       </Routes>
+      {showSupportFooter && <SupportFooter />}
     </>
   );
 }
