@@ -19,7 +19,7 @@ export default function TipDeveloperButton({
 
   const HeartIcon = heartFilled || heartActive ? FavoriteIcon : FavoriteBorderIcon;
 
-  const handleClick = async () => {
+  const handleClick = () => {
     setHeartFilled(true);
 
     if (!TIP_URL) {
@@ -27,11 +27,13 @@ export default function TipDeveloperButton({
       return;
     }
 
-    await trackEvent("tip_button_clicked", {
-      source,
-    });
-
     window.open(TIP_URL, "_blank", "noopener,noreferrer");
+
+    trackEvent("tip_button_clicked", {
+      source,
+    }).catch((error) => {
+      console.warn("Tip analytics failed:", error);
+    });
   };
 
   return (

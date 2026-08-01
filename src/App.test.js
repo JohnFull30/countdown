@@ -79,6 +79,7 @@ test("renders the support page with one email support action and no footer", () 
 test("renders setup support only in premium card and global footer", () => {
   mockPath = "/";
   mockSearch = "";
+  const openSpy = jest.spyOn(window, "open").mockImplementation(() => null);
 
   render(<App />);
 
@@ -94,6 +95,18 @@ test("renders setup support only in premium card and global footer", () => {
     "/support"
   );
   expect(screen.getAllByText("A Pierre Fuller Labs product.")).toHaveLength(1);
+
+  const browseGiphyButton = screen.getByRole("button", {
+    name: "Browse GIPHY search (opens in a new tab)",
+  });
+  expect(browseGiphyButton).toBeEnabled();
+  browseGiphyButton.click();
+  expect(openSpy).toHaveBeenCalledWith(
+    "https://giphy.com/search/gender-reveal",
+    "_blank",
+    "noopener,noreferrer"
+  );
+  openSpy.mockRestore();
 });
 
 test("renders the global support footer once on payment pages", () => {

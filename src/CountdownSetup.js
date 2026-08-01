@@ -15,10 +15,6 @@ import {
   Chip,
   Link,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
@@ -28,6 +24,7 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import HelpOutlineIcon from "@mui/icons-material/HelpOutline";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import MovieCreationOutlinedIcon from "@mui/icons-material/MovieCreationOutlined";
+import OpenInNewIcon from "@mui/icons-material/OpenInNew";
 import PaletteOutlinedIcon from "@mui/icons-material/PaletteOutlined";
 import PhoneIphoneIcon from "@mui/icons-material/PhoneIphone";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -66,6 +63,7 @@ const CREAM = "#fffaf2";
 const INK = "#141a20";
 const MUTED = "#536052";
 const PORTFOLIO_URL = "https://johnfull30.github.io/MyPortfolio/";
+const GIPHY_SEARCH_URL = "https://giphy.com/search/gender-reveal";
 
 const SETUP_SPACING = {
   pageTop: {
@@ -183,7 +181,6 @@ export const CountdownSetup = () => {
   });
 
   const [devOpen, setDevOpen] = useState(false);
-  const [giphyDialogOpen, setGiphyDialogOpen] = useState(false);
   const [premiumNotice, setPremiumNotice] = useState("");
   const premiumRef = useRef(null);
   const navigate = useNavigate();
@@ -382,6 +379,10 @@ export const CountdownSetup = () => {
 
   const adjustDuration = (amount) => {
     setDuration((current) => Math.min(30, Math.max(1, current + amount)));
+  };
+
+  const handleBrowseGiphy = () => {
+    window.open(GIPHY_SEARCH_URL, "_blank", "noopener,noreferrer");
   };
 
   const handleCustomRevealUnlock = async () => {
@@ -917,11 +918,7 @@ export const CountdownSetup = () => {
                         value={customGif}
                         onChange={(e) => setCustomGif(e.target.value)}
                         disabled={!isPremiumUser}
-                        helperText={
-                          isPremiumUser
-                            ? "Use a GIPHY link, direct .gif, or .mp4 reveal background."
-                            : "Premium lets you upload your own video or GIF."
-                        }
+                        helperText="Find a GIF on GIPHY, copy its link, then paste it here. Direct .gif and .mp4 links also work."
                         variant="standard"
                         fullWidth
                         InputProps={{
@@ -945,11 +942,13 @@ export const CountdownSetup = () => {
                     <Button
                       variant="outlined"
                       size="medium"
-                      disabled={!isPremiumUser}
-                      onClick={() => setGiphyDialogOpen(true)}
+                      startIcon={<OpenInNewIcon />}
+                      aria-label="Browse GIPHY search (opens in a new tab)"
+                      onClick={handleBrowseGiphy}
                       sx={{
                         alignSelf: { xs: "stretch", sm: "center" },
                         minWidth: { xs: "auto", sm: 170 },
+                        minHeight: 44,
                         borderRadius: 2,
                         borderColor: "rgba(20, 26, 32, 0.16)",
                         bgcolor: "#fff",
@@ -961,14 +960,13 @@ export const CountdownSetup = () => {
                           borderColor: BRAND_GREEN,
                           bgcolor: BRAND_GREEN_SOFT,
                         },
-                        "&.Mui-disabled": {
-                          bgcolor: "rgba(255,255,255,0.62)",
-                          color: "#8a939b",
-                          borderColor: "rgba(20, 26, 32, 0.1)",
+                        "&.Mui-focusVisible": {
+                          outline: `3px solid ${BRAND_GREEN_SOFT}`,
+                          outlineOffset: 2,
                         },
                       }}
                     >
-                      Choose from GIPHY
+                      Browse GIPHY
                     </Button>
                     {!isPremiumUser && (
                       <Button
@@ -1303,44 +1301,6 @@ export const CountdownSetup = () => {
           bottomSpacing={SETUP_SPACING.footerBottom}
         />
       </Stack>
-
-      <Dialog
-        open={giphyDialogOpen}
-        onClose={() => setGiphyDialogOpen(false)}
-        maxWidth="xs"
-        fullWidth
-        PaperProps={{
-          sx: {
-            borderRadius: 3,
-            p: 0.5,
-          },
-        }}
-      >
-        <DialogTitle sx={{ color: INK, fontWeight: 950, pb: 0.75 }}>
-          GIPHY search is coming soon
-        </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: "#45515d", lineHeight: 1.6 }}>
-            For now, paste a GIPHY link, direct .gif, or .mp4 URL into the
-            custom media field to use it as your reveal background.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2.5 }}>
-          <Button
-            variant="contained"
-            onClick={() => setGiphyDialogOpen(false)}
-            sx={{
-              borderRadius: 2,
-              bgcolor: BRAND_GREEN,
-              fontWeight: 900,
-              textTransform: "none",
-              "&:hover": { bgcolor: BRAND_GREEN_DARK },
-            }}
-          >
-            Got it
-          </Button>
-        </DialogActions>
-      </Dialog>
 
       {devMode && (
         <>
