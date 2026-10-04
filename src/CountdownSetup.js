@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
+  Alert,
   Box,
   Typography,
   Button,
@@ -180,6 +181,10 @@ export const CountdownSetup = () => {
     return saved === "true";
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const submittingRef = useRef(false);
+
   const [devOpen, setDevOpen] = useState(false);
   const [premiumNotice, setPremiumNotice] = useState("");
   const premiumRef = useRef(null);
@@ -304,12 +309,17 @@ export const CountdownSetup = () => {
     const usingFireworks = fireworksEnabled && !isPremiumUser;
     const usingPremium = usingCustomGif || usingFireworks;
 
-    if (usingPremium) {
-      if (freeTries > 0) {
-        const newTries = freeTries - 1;
-        setFreeTries(newTries);
-        localStorage.setItem("freeTries", newTries.toString());
-      } else {
+    // The ref closes the gap before React renders the disabled button.
+    if (submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
+    setSaveError("");
+
+    try {
+      if (usingPremium && freeTries <= 0) {
+        focusPremiumCard(
+          "Premium is required to start with fireworks or a custom reveal link."
+        );
         await trackEvent("paywall_viewed", {
           source: "start_countdown_gate",
           reason: "free_tries_exhausted",
@@ -320,60 +330,59 @@ export const CountdownSetup = () => {
           free_tries_remaining: freeTries,
           secret_mode: secretMode,
         });
-        focusPremiumCard(
-          "Premium is required to start with fireworks or a custom reveal link."
-        );
         return;
       }
-    }
 
-    const { error } = await supabase.from("countdowns").insert([
-      {
-        duration,
-        gender,
-        custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
-      },
-    ]);
-    if (error) console.error("Insert error:", error);
-
-    if (!secretMode) {
       const query = new URLSearchParams({
         duration: duration.toString(),
-        gender,
         customGifUrl: isPremiumUser ? normalizedCustomGif : "",
         fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      return navigate(`/countdown?${query}`);
-    }
+      });
 
-    try {
-      const revealId = makeShortId(6);
-      const { error: revealErr } = await supabase.from("reveals").upsert([
-        {
-          id: revealId,
-          gender,
-          duration_seconds: duration,
-          fireworks: fireworksEnabled,
-          custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
-        },
-      ]);
-      if (revealErr) throw revealErr;
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        revealId,
-        customGifUrl: isPremiumUser ? normalizedCustomGif : "",
-        fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      navigate(`/countdown?${query}`);
-    } catch (e) {
-      console.error("Reveal save exception:", e);
-      const query = new URLSearchParams({
-        duration: duration.toString(),
-        gender,
-        customGifUrl: isPremiumUser ? normalizedCustomGif : "",
-        fireworks: fireworksEnabled ? "true" : "false",
-      }).toString();
-      navigate(`/countdown?${query}`);
+      if (secretMode) {
+        const revealId = makeShortId(6);
+        const { error } = await supabase.from("reveals").upsert([
+          {
+            id: revealId,
+            gender,
+            duration_seconds: duration,
+            fireworks: fireworksEnabled,
+            custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
+          },
+        ]);
+        if (error) throw error;
+        // Never create a secret link until its reveal has been saved.
+        query.set("revealId", revealId);
+      } else {
+        query.set("gender", gender);
+      }
+
+      // Countdown logging is best effort and must not block a saved reveal.
+      try {
+        await supabase.from("countdowns").insert([
+          {
+            duration,
+            gender,
+            custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
+          },
+        ]);
+      } catch {
+        // A logging failure does not invalidate the countdown.
+      }
+
+      if (usingPremium) {
+        const newTries = freeTries - 1;
+        localStorage.setItem("freeTries", newTries.toString());
+        setFreeTries(newTries);
+      }
+      navigate(`/countdown?${query.toString()}`);
+    } catch {
+      setSaveError(
+        "We couldn’t save your countdown. No share link was created. Your setup is still here. Please try again."
+      );
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -995,6 +1004,11 @@ export const CountdownSetup = () => {
                   </Stack>
                 </Paper>
 
+                {saveError && (
+                  <Alert severity="error" role="alert">
+                    {saveError}
+                  </Alert>
+                )}
                 <Button
                   variant="contained"
                   size="large"
@@ -1013,8 +1027,10 @@ export const CountdownSetup = () => {
                     },
                   }}
                   onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  aria-busy={isSubmitting}
                 >
-                  Start Countdown
+                  {isSubmitting ? "Saving countdown…" : saveError ? "Retry saving countdown" : "Start Countdown"}
                 </Button>
               </Stack>
             </Box>
