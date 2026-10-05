@@ -16,7 +16,7 @@ jest.mock("react-router-dom", () => {
     useNavigate: () => mockNavigate,
   };
 }, { virtual: true });
-jest.mock("./supabaseClient", () => ({ supabase: { from: jest.fn() } }));
+jest.mock("./supabaseClient", () => ({ supabase: { from: jest.fn(), rpc: jest.fn() } }));
 jest.mock("./analytics", () => ({ trackEvent: jest.fn().mockResolvedValue() }));
 jest.mock("./config/stripeConfig", () => ({ mode: "test" }));
 
@@ -24,11 +24,10 @@ beforeEach(() => {
   jest.clearAllMocks();
   localStorage.clear();
   localStorage.setItem("secretMode", "true");
-  mockSave.mockReset().mockResolvedValue({ error: null });
+  mockSave.mockReset().mockResolvedValue({ data: "server-token", error: null });
+  supabase.rpc.mockImplementation((name, args) => mockSave(args));
   mockLog.mockReset().mockResolvedValue({ error: null });
-  supabase.from.mockImplementation((table) =>
-    table === "reveals" ? { upsert: mockSave } : { insert: mockLog }
-  );
+  supabase.from.mockReturnValue({ insert: mockLog });
 });
 
 function start() {
@@ -39,7 +38,8 @@ function expectSecretLink() {
   const url = new URL(mockNavigate.mock.calls[0][0], "https://example.com");
   expect(url.pathname).toBe("/countdown");
   expect(url.searchParams.has("gender")).toBe(false);
-  expect(url.searchParams.get("revealId")).toBe(mockSave.mock.calls.at(-1)[0][0].id);
+  expect(url.searchParams.has("customGifUrl")).toBe(false);
+  expect(url.searchParams.get("revealId")).toBe("server-token");
   return url;
 }
 
@@ -58,7 +58,7 @@ test.each(["returned", "thrown"])("%s save failure stays on setup and retries sa
   fireEvent.click(screen.getByRole("button", { name: "Retry saving countdown" }));
   await waitFor(() => expect(mockNavigate).toHaveBeenCalledTimes(1));
   expect(mockSave).toHaveBeenCalledTimes(2);
-  expect(mockSave.mock.calls[1][0][0]).toMatchObject({ gender: "girl", duration_seconds: 2, fireworks: true });
+  expect(mockSave.mock.calls[1][0]).toMatchObject({ p_gender: "girl", p_duration: 2, p_fireworks: true });
   expect(expectSecretLink().searchParams.get("duration")).toBe("2");
   expect(localStorage.getItem("freeTries")).toBe("2");
   expect(screen.queryByRole("alert")).not.toBeInTheDocument();
@@ -74,10 +74,10 @@ test("pending save blocks duplicate submissions and creates a secret link only o
   expect(button).toHaveAttribute("aria-busy", "true");
   expect(mockSave).toHaveBeenCalledTimes(1);
   expect(mockNavigate).not.toHaveBeenCalled();
-  await act(async () => resolveSave({ error: null }));
+  await act(async () => resolveSave({ data: "server-token", error: null }));
   expect(mockNavigate).toHaveBeenCalledTimes(1);
   expectSecretLink();
-  expect(mockLog).toHaveBeenCalledTimes(1);
+  expect(mockLog).not.toHaveBeenCalled();
 });
 
 test("ordinary countdown creation retains its settings", async () => {
@@ -88,5 +88,5 @@ test("ordinary countdown creation retains its settings", async () => {
   const query = new URL(mockNavigate.mock.calls[0][0], "https://example.com").searchParams;
   expect(Object.fromEntries(query)).toEqual({ duration: "1", gender: "boy", customGifUrl: "", fireworks: "true" });
   expect(mockSave).not.toHaveBeenCalled();
-  expect(mockLog).toHaveBeenCalledTimes(1);
+  expect(mockLog).not.toHaveBeenCalled();
 });

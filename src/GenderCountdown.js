@@ -21,6 +21,8 @@ export default function GenderCountdown() {
   const [mediaError, setMediaError] = useState(false);
 
   const countdownRef = useRef(null);
+  const startingRef = useRef(false);
+  const [secretSession, setSecretSession] = useState(null);
   const videoRef = useRef(null);
   const confettiCanvasRef = useRef(null);
   const navigate = useNavigate();
@@ -33,54 +35,15 @@ export default function GenderCountdown() {
   const fireworksParam = searchParams.get("fireworks") === "true"; // ← respect toggle
   const revealId = searchParams.get("revealId") || "";
 
-  // Resolve gender/options:
-  // - Non-secret: use query params as before
-  // - Secret: fetch from Supabase by revealId (keeps UI neutral until resolved)
   useEffect(() => {
-    let cancelled = false;
-
-    async function loadSecret() {
-      setSecretLoading(true);
-      setSecretError("");
-      try {
-        const { data, error } = await supabase
-          .from("reveals")
-          .select("gender, duration_seconds, fireworks, custom_gif_url")
-          .eq("id", revealId)
-          .single();
-
-        if (error) throw error;
-        if (!data?.gender) throw new Error("No secret found.");
-
-        if (!cancelled) {
-          setResolvedGender(data.gender);
-          // Prefer server values where present; keep duration from URL for consistency
-          setResolvedGif(normalizeRevealMediaUrl(data.custom_gif_url || ""));
-          setResolvedFireworks(
-            typeof data.fireworks === "boolean"
-              ? data.fireworks
-              : fireworksParam
-          );
-        }
-      } catch (e) {
-        if (!cancelled) setSecretError(e.message || "Failed to load secret.");
-      } finally {
-        if (!cancelled) setSecretLoading(false);
-      }
-    }
-
-    if (revealId) {
-      loadSecret();
-    } else {
-      // non-secret path (original behavior)
-      setResolvedGender(genderParam || "boy");
-      setResolvedGif(normalizeRevealMediaUrl(customGifUrlParam || ""));
-      setResolvedFireworks(fireworksParam);
-    }
-
-    return () => {
-      cancelled = true;
-    };
+    setCountdownStarted(false);
+    setRevealPhase(false);
+    setConfettiFired(false);
+    setSecretSession(null);
+    setSecretError("");
+    setResolvedGender(revealId ? null : genderParam || "boy");
+    setResolvedGif(revealId ? "" : normalizeRevealMediaUrl(customGifUrlParam));
+    setResolvedFireworks(revealId ? null : fireworksParam);
   }, [revealId, genderParam, customGifUrlParam, fireworksParam]);
 
   const base = process.env.PUBLIC_URL || "";
@@ -111,30 +74,58 @@ export default function GenderCountdown() {
     body.style.color = "";
     body.style.textShadow = "";
 
-    let timer = duration;
-    countdownRef.current = setInterval(() => {
-      if (timer >= 0) {
-        displayEl.textContent = timer;
-        timer -= 1;
-      } else {
-        clearInterval(countdownRef.current);
-        displayEl.style.display = "none";
-        body.style.backgroundColor = "#000";
-        setRevealPhase(true);
-        body.style.color = gender === "girl" ? "#ff627e" : "cornflowerblue";
-        body.style.textShadow = "8px 1px black";
-        genderEl.textContent =
-          gender === "girl" ? "IT'S A GIRL!" : "IT'S A BOY!";
-      }
-    }, 1000);
+    let cancelled = false;
+    let busy = false;
+    const deadline = Date.now() + (secretSession?.duration_seconds || duration) * 1000;
+    const showReveal = (resultGender) => {
+      clearInterval(countdownRef.current);
+      displayEl.style.display = "none";
+      body.style.backgroundColor = "#000";
+      setRevealPhase(true);
+      body.style.color = resultGender === "girl" ? "#ff627e" : "cornflowerblue";
+      body.style.textShadow = "8px 1px black";
+      genderEl.textContent = resultGender === "girl" ? "IT'S A GIRL!" : "IT'S A BOY!";
+    };
+    const tick = async () => {
+      if (busy || cancelled) return;
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      displayEl.textContent = remaining;
+      if (remaining > 0) return;
+      if (!revealId) { showReveal(genderParam || "boy"); return; }
+      busy = true;
+      try {
+        const { data, error } = await supabase.rpc("finish_reveal", {
+          p_ticket: secretSession.ticket,
+        });
+        if (error) throw error;
+        if (cancelled) return;
+        if (!data) {
+          // Server clock is authoritative even if the browser clock is altered.
+          if (Date.now() - deadline > 60000) throw new Error("Reveal session expired. Reload to try again.");
+          return;
+        }
+        setResolvedGender(data.gender);
+        setResolvedGif(normalizeRevealMediaUrl(data.custom_gif_url || ""));
+        setResolvedFireworks(data.fireworks);
+        showReveal(data.gender);
+      } catch {
+        if (!cancelled) {
+          clearInterval(countdownRef.current);
+          setSecretError("Could not retrieve the reveal. Reload to try again.");
+        }
+      } finally { busy = false; }
+    };
+    tick();
+    countdownRef.current = setInterval(tick, 1000);
 
     return () => {
+      cancelled = true;
       clearInterval(countdownRef.current);
       body.style.backgroundColor = "";
       body.style.color = "";
       body.style.textShadow = "";
     };
-  }, [countdownStarted, duration, gender, customGifUrl]);
+  }, [countdownStarted, duration, genderParam, revealId, secretSession]);
 
   useEffect(() => {
     if (!revealPhase) return;
@@ -200,20 +191,28 @@ export default function GenderCountdown() {
     }, 250);
   };
 
-  const startDisabled =
-    !!revealId && (secretLoading || !!secretError || !resolvedGender);
+  const startDisabled = secretLoading;
 
   const handleCountdownStart = async () => {
-    await trackEvent("countdown_started", {
-      duration,
-      gender,
-      has_custom_gif: Boolean(customGifUrl),
-      fireworks_enabled: fireworks,
-      secret_mode: Boolean(revealId),
-      reveal_id: revealId || undefined,
-      media_type: mediaType,
-    });
-    setCountdownStarted(true);
+    if (startingRef.current) return;
+    startingRef.current = true;
+    setSecretLoading(true);
+    setSecretError("");
+    try {
+      if (revealId) {
+        const { data, error } = await supabase.rpc("start_reveal", { p_reveal_id: revealId });
+        if (error || !data?.ticket) throw error || new Error("Reveal unavailable");
+        setSecretSession(data);
+      }
+      // Do not send share capabilities or secret settings to analytics.
+      void trackEvent("countdown_started", { secret_mode: Boolean(revealId) });
+      setCountdownStarted(true);
+    } catch {
+      setSecretError("Could not start this reveal. Check the link and try again.");
+    } finally {
+      startingRef.current = false;
+      setSecretLoading(false);
+    }
   };
 
   return (
@@ -225,6 +224,7 @@ export default function GenderCountdown() {
         zIndex: 0,
       }}
     >
+      {secretError && <p role="alert">{secretError}</p>}
       {revealPhase && (
         <>
           {mediaType === "video" ? (

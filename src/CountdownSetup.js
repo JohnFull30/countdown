@@ -156,14 +156,6 @@ const PREMIUM_FEATURES = [
 
 const devMode = true;
 
-function makeShortId(len = 6) {
-  const alphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-  let out = "";
-  for (let i = 0; i < len; i++)
-    out += alphabet[Math.floor(Math.random() * alphabet.length)];
-  return out;
-}
-
 export const CountdownSetup = () => {
   const [duration, setDuration] = useState(1);
   const [gender, setGender] = useState("boy");
@@ -340,34 +332,19 @@ export const CountdownSetup = () => {
       });
 
       if (secretMode) {
-        const revealId = makeShortId(6);
-        const { error } = await supabase.from("reveals").upsert([
-          {
-            id: revealId,
-            gender,
-            duration_seconds: duration,
-            fireworks: fireworksEnabled,
-            custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
-          },
-        ]);
+        const { data: revealId, error } = await supabase.rpc("create_reveal", {
+          p_gender: gender,
+          p_duration: duration,
+          p_fireworks: fireworksEnabled,
+          p_media: isPremiumUser ? normalizedCustomGif : "",
+        });
         if (error) throw error;
         // Never create a secret link until its reveal has been saved.
+        if (!revealId) throw new Error("Missing reveal link");
+        query.delete("customGifUrl");
         query.set("revealId", revealId);
       } else {
         query.set("gender", gender);
-      }
-
-      // Countdown logging is best effort and must not block a saved reveal.
-      try {
-        await supabase.from("countdowns").insert([
-          {
-            duration,
-            gender,
-            custom_gif_url: isPremiumUser ? normalizedCustomGif : "",
-          },
-        ]);
-      } catch {
-        // A logging failure does not invalidate the countdown.
       }
 
       if (usingPremium) {
@@ -891,7 +868,7 @@ export const CountdownSetup = () => {
                         }
                         sx={{ m: 0 }}
                       />
-                      <Tooltip title="Keeps the reveal result hidden in the countdown URL when available.">
+                      <Tooltip title="Anyone with the link can start a countdown. The server releases the result after that countdown finishes.">
                         <HelpOutlineIcon sx={{ color: "#687382", fontSize: 21 }} />
                       </Tooltip>
                     </Stack>
